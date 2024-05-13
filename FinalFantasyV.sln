@@ -1,0 +1,31 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 25.0.1705.4
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinalFantasyV", "FinalFantasyV\FinalFantasyV.csproj", "{554B9CF2-A255-4A80-B5AF-4E0A3E58DC1D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Engine", "Engine\Engine.csproj", "{01ED3F4A-4577-4ACF-BEA6-18974603A963}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{554B9CF2-A255-4A80-B5AF-4E0A3E58DC1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{554B9CF2-A255-4A80-B5AF-4E0A3E58DC1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{554B9CF2-A255-4A80-B5AF-4E0A3E58DC1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{554B9CF2-A255-4A80-B5AF-4E0A3E58DC1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01ED3F4A-4577-4ACF-BEA6-18974603A963}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01ED3F4A-4577-4ACF-BEA6-18974603A963}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01ED3F4A-4577-4ACF-BEA6-18974603A963}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01ED3F4A-4577-4ACF-BEA6-18974603A963}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {68DA820B-C4FB-44BD-B0E3-BCAF967C37C4}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,19 @@
+﻿{
+  "Goblin": {
+    "level": 6,
+    "hp": 16,
+    "mp": 3,
+    "attack": 5,
+    "AttMultiplier": 1,
+    "evade": 0,
+    "defense": 0,
+    "exp": 10,
+    "gil": 20,
+    "speed": 10,
+    "magicPower": 0,
+    "magicMult": 4,
+    "magicEvade": 0,
+    "magicDefense": 5
+  }
+}
+

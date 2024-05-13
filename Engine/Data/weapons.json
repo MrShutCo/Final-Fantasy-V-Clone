@@ -1,0 +1,41 @@
+﻿{
+  "Dagger": {
+    "attack": 14,
+    "damageFormula": 32,
+    "hit": 100,
+    "critical": 0,
+    "throwAttack": 14,
+    "throwable": true,
+    "price": 300,
+    "sell": 150,
+    "attackCategory": "Physical",
+    "strongVs": [],
+    "stats": [],
+    "magicElementUp": [],
+    "special": [],
+    "spell": [],
+    "statusAdded": [],
+    "usedAsItem": "",
+    "jobEquippable": []
+  },
+  "Broad Sword": {
+    "attack": 15,
+    "damageFormula": 31,
+    "hit": 100,
+    "critical": 0,
+    "throwAttack": 15,
+    "throwable": true,
+    "price": 280,
+    "sell": 140,
+    "attackCategory": "Physical",
+    "strongVs": [],
+    "stats": [],
+    "magicElementUp": [],
+    "special": ["Double Grip", "Magic Sword"],
+    "spell": [],
+    "statusAdded": [],
+    "usedAsItem": "",
+    "jobEquippable": ["Kn", "MK", "BlM", "RM"]
+  }
+}
+

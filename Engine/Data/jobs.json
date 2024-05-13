@@ -1,0 +1,129 @@
+﻿{
+  "Normal": {
+    "strength": 24,
+    "agility": 24,
+    "vitality": 24,
+    "magic": 24
+  },
+  "Knight": {
+    "strength": 47,
+    "agility": 25,
+    "vitality": 44,
+    "magic": 10
+  },
+  "Monk": {
+    "strength": 50,
+    "agility": 25,
+    "vitality": 50,
+    "magic": 1
+  },
+  "Thief": {
+    "strength": 25,
+    "agility": 40,
+    "vitality": 26,
+    "magic": 18
+  },
+  "Dragoon": {
+    "strength": 42,
+    "agility": 29,
+    "vitality": 39,
+    "magic": 12
+  },
+  "Ninja": {
+    "strength": 39,
+    "agility": 38,
+    "vitality": 27,
+    "magic": 14
+  },
+  "Samurai": {
+    "strength": 43,
+    "agility": 26,
+    "vitality": 43,
+    "magic": 12
+  },
+  "Berserker": {
+    "strength": 45,
+    "agility": 15,
+    "vitality": 49,
+    "magic": 1
+  },
+  "Hunter": {
+    "strength": 40,
+    "agility": 36,
+    "vitality": 25,
+    "magic": 19
+  },
+  "Mystic Knight": {
+    "strength": 38,
+    "agility": 38,
+    "vitality": 38,
+    "magic": 25
+  },
+  "White Mage": {
+    "strength": 17,
+    "agility": 25,
+    "vitality": 24,
+    "magic": 49
+  },
+  "Black Mage": {
+    "strength": 15,
+    "agility": 24,
+    "vitality": 22,
+    "magic": 55
+  },
+  "Time Mage": {
+    "strength": 19,
+    "agility": 26,
+    "vitality": 21,
+    "magic": 48
+  },
+  "Summoner": {
+    "strength": 14,
+    "agility": 23,
+    "vitality": 23,
+    "magic": 57
+  },
+  "Blue Mage": {
+    "strength": 16,
+    "agility": 25,
+    "vitality": 27,
+    "magic": 47
+  },
+  "Red Mage": {
+    "strength": 32,
+    "agility": 29,
+    "vitality": 18,
+    "magic": 32
+  },
+  "Mediator": {
+    "strength": 37,
+    "agility": 25,
+    "vitality": 32,
+    "magic": 21
+  },
+  "Chemist": {
+    "strength": 26,
+    "agility": 27,
+    "vitality": 30,
+    "magic": 20
+  },
+  "Geomancer": {
+    "strength": 28,
+    "agility": 26,
+    "vitality": 28,
+    "magic": 48
+  },
+  "Bard": {
+    "strength": 16,
+    "agility": 32,
+    "vitality": 15,
+    "magic": 35
+  },
+  "Dancer": {
+    "strength": 29,
+    "agility": 19,
+    "vitality": 14,
+    "magic": 19
+  }
+}
+
