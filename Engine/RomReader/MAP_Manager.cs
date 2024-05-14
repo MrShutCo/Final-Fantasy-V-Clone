@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using Microsoft.Xna.Framework.Graphics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.ColorSpaces;
 using SixLabors.ImageSharp.PixelFormats;
@@ -598,22 +599,36 @@ namespace Engine.RomReader
         * 
         * @return: The Image picture representing the background layer.
         */
-        private static Image<Rgba32> DrawBackground(List<byte> tileMap, List<tile16x16> tiles16X16, bool down, bool background02 = false)
+        /*private static Image<Rgba32> DrawBackground(List<byte> tileMap, List<TileTexture> tiles16X16, bool down, bool background02 = false)
         {
-            Image<Rgba32> background = new Image<Rgba32>(64 * 8 * 2, 64 * 8 * 2);
+            var gd = tiles16X16[0].ImageP1.GraphicsDevice;
+            RenderTarget2D background = new RenderTarget2D(gd, 64 * 8 * 2, 64 * 8 * 2);
             int x = 0;
             int y = 0;
-
-            foreach (byte item in tileMap)
-            {
-                tiles16X16[item].draw(x, y, background, down, background02);
-
-                x += 16;
-                if (x > 16 * 63) { x = 0; y += 16; }
-            }
+            background.Set
+           
+                foreach (byte item in tileMap)
+                {
+                    if (background02)
+                        if (down)
+                            g.DrawImage(tiles16X16[item].ImageP1Bg02, new Point(x, y), 1);
+                        else
+                            g.DrawImage(tiles16X16[item].ImageP0Bg02, new Point(x, y), 1);
+                    else if (down)
+                        g.DrawImage(tiles16X16[item].ImageP1, new Point(x, y), 1);
+                    else
+                        g.DrawImage(tiles16X16[item].ImageP0, new Point(x, y), 1);
+                    x += 16;
+                    if (x > 16 * 63)
+                    {
+                        x = 0;
+                        y += 16;
+                    }
+                }
+            
 
             return background;
-        }
+        }*/
 
 
 
@@ -1735,17 +1750,16 @@ namespace Engine.RomReader
         * 
         * @return: True if the map was deciphered successfully.
         */
-        public bool MapDecypher(BinaryReader br, int headerOffset, int id, int quadrant,
-            out Image<Rgba32> mapBg00U, out Image<Rgba32> mapBg00D,
-            out Image<Rgba32> mapBg01U, out Image<Rgba32> mapBg01D,
-            out Image<Rgba32> mapBg02U, out Image<Rgba32> mapBg02D,
+        public bool MapDecypher(GraphicsDevice gd, BinaryReader br, int headerOffset, int id, int quadrant,
+            out BackgroundLayers map,
             out Wall[,] walls)
         {
-            mapBg00U = mapBg00D = mapBg01U = mapBg01D = mapBg02U = mapBg02D = new Image<Rgba32>(1, 1);
+            //mapBg00U = mapBg00D = mapBg01U = mapBg01D = mapBg02U = mapBg02D = new Texture2D(gd, 1096, 1096);
             walls = new Wall[64,64];
             bool output = true;
 
-            if (id < 5) return WorldMapDecypher(br, headerOffset, id, quadrant, out mapBg00U, out mapBg00D, out mapBg01U, out mapBg01D, out mapBg02U, out mapBg02D, out walls);
+            // TODO: implement this fix for worldmap
+            if (id < 5) return WorldMapDecypher(gd, br, headerOffset, id, quadrant, out map, out walls);
             
 
             Stopwatch sw = new Stopwatch();
@@ -1787,15 +1801,23 @@ namespace Engine.RomReader
                 CalculateCurrentBackgrounds(br, headerOffset, mapDescriptors);
                 //sw.Stop(); performanceMessage += "Initialize tables:\r\n" + sw.ElapsedMilliseconds + "ms\r\n\r\n";sw.Reset(); //DEBUG
 
-
+                List<TileTexture> tiles16x16XNA = new();
+                
+                foreach (var tile in Tiles16X16)
+                {
+                    tiles16x16XNA.Add(new TileTexture(gd, tile));
+                }
+                
                 // Draw backgrounds
                 //sw.Start(); //DEBUG
-                mapBg00U = DrawBackground(Tilemap00, Tiles16X16, false);
-                mapBg00D = DrawBackground(Tilemap00, Tiles16X16, true);
-                mapBg01U = DrawBackground(Tilemap01, Tiles16X16, false);
-                mapBg01D = DrawBackground(Tilemap01, Tiles16X16, true);
-                mapBg02U = DrawBackground(Tilemap02, Tiles16X16, false, true);
-                mapBg02D = DrawBackground(Tilemap02, Tiles16X16, true, true);
+
+                map = new BackgroundLayers(tiles16x16XNA, Tilemap00, Tilemap01, Tilemap02);
+                /*mapBg00U = new BackgroundLayer(Tilemap00, Tiles16X16, false, false);
+                mapBg00D = new BackgroundLayer(Tilemap00, Tiles16X16, true, false);
+                mapBg01U = new BackgroundLayer(Tilemap01, Tiles16X16, false, false);
+                mapBg01D = new BackgroundLayer(Tilemap01, Tiles16X16, true, false);
+                mapBg02U = new BackgroundLayer(Tilemap02, Tiles16X16, false, true);
+                mapBg02D = new BackgroundLayer(Tilemap02, Tiles16X16, true, true);*/
                 //sw.Stop(); performanceMessage += "Draw backgrounds:\r\n" + sw.ElapsedMilliseconds + "ms\r\n\r\n"; sw.Reset(); //DEBUG
 
 
@@ -1808,9 +1830,43 @@ namespace Engine.RomReader
 
                 //System.Windows.Forms.MessageBox.Show(performanceMessage, "Performance metrics"); //DEBUG
 
-            return output;
+            return true;
         }
 
+        public class TileTexture
+        {
+            public Texture2D ImageP1Bg02;
+            public Texture2D ImageP0Bg02;
+            
+            public Texture2D ImageP1;
+            public Texture2D ImageP0;
+
+            public TileTexture(GraphicsDevice gd, tile16x16 tile)
+            {
+                ImageP1 = ConvertToTex(gd, tile.ImageP1);
+                ImageP0 = ConvertToTex(gd, tile.ImageP0);
+                ImageP0Bg02 = ConvertToTex(gd, tile.ImageP0Bg02);
+                ImageP1Bg02 = ConvertToTex(gd, tile.ImageP1Bg02);
+            }
+        }
+
+        public static Texture2D ConvertToTex(GraphicsDevice device, Image<Rgba32> image)
+        {
+            Texture2D tex = new Texture2D(device, image.Width, image.Height);
+
+            var data = new Microsoft.Xna.Framework.Color[image.Width * image.Height];
+            for (var x = 0; x < image.Width; x++)
+            {
+                for (var y = 0; y < image.Height; y++)
+                {
+                    var color = image[x, y];
+                    data[y * image.Width + x] = new Microsoft.Xna.Framework.Color(color.R,color.G,color.B,color.A);
+                }
+            }
+			
+            tex.SetData(data);
+            return tex;
+        }
 
 
         /**
@@ -1832,14 +1888,11 @@ namespace Engine.RomReader
         * 
         * @return: True if the map was deciphered successfully.
         */
-        public bool WorldMapDecypher(BinaryReader br, int headerOffset, int id, int quadrant,
-            out Image<Rgba32> mapBg00U, out Image<Rgba32> mapBg00D,
-            out Image<Rgba32> mapBg01U, out Image<Rgba32> mapBg01D,
-            out Image<Rgba32> mapBg02U, out Image<Rgba32> mapBg02D,
-            out Wall[,] walls)
+        public bool WorldMapDecypher(GraphicsDevice gd, BinaryReader br, int headerOffset, int id, int quadrant,
+            out BackgroundLayers bl, out Wall[,] walls)
         {
-            mapBg00U = mapBg00D = mapBg01U = mapBg01D = mapBg02U = mapBg02D = new Image<Rgba32>(1, 1);
             walls = new Wall[1,1];
+            bl = new BackgroundLayers();
             bool output = true;
 
             try
@@ -1866,7 +1919,14 @@ namespace Engine.RomReader
                 CalculateCurrentBackgrounds(br, headerOffset, null, true);
 
                 // Draw backgrounds
-                mapBg00U = DrawBackground(Tilemap00, Tiles16X16, false, false);
+                List<TileTexture> tiles16x16XNA = new();
+                
+                foreach (var tile in Tiles16X16)
+                {
+                    tiles16x16XNA.Add(new TileTexture(gd, tile));
+                }
+
+                bl = new BackgroundLayers(tiles16x16XNA, Tilemap00, Tilemap01, Tilemap02);
 
                 // Draw walls
                 //walls = drawWorldMapWalls(tilemap00, tileProperties);
@@ -3036,11 +3096,11 @@ namespace Engine.RomReader
         public tile8x8 tile02Bg02;
         public tile8x8 tile03Bg02;
 
-        Image<Rgba32> ImageP0;
-        Image<Rgba32> ImageP1;
+        public Image<Rgba32> ImageP0;
+        public Image<Rgba32> ImageP1;
 
-        Image<Rgba32> ImageP0Bg02;
-        Image<Rgba32> ImageP1Bg02;
+        public Image<Rgba32> ImageP0Bg02;
+        public Image<Rgba32> ImageP1Bg02;
 
 
 
@@ -3136,9 +3196,8 @@ namespace Engine.RomReader
         * @param priority: The priority of the layer ('up' is drawn over 'down').
         * @param background02: Is the layer a 'background02'? (4 color per tile instead of 16 color per tile).
         */
-        public void draw(int x, int y, Image output, bool priority, bool background02)
+        public void Draw(int x, int y, Image<Rgba32> output, bool priority, bool background02)
         {
-            
             output.Mutate(g =>
             {
                 if (background02)

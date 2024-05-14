@@ -2,6 +2,7 @@
 using System.Runtime;
 using System.Text;
 using Final_Fantasy_V.Models;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Engine.RomReader;
 
@@ -149,18 +150,14 @@ public class RomGame
         Map = new MapManager(br, offset, SpeechTxt, itemNames, spellNames, locationNames, monsterNames);
     }
 
-    public (Image<Rgba32>, Image<Rgba32>, Image<Rgba32>, Image<Rgba32>, Image<Rgba32>, Image<Rgba32>, MapManager.Wall[,]) GetLayers(int id)
+    public (BackgroundLayers, MapManager.Wall[,]) GetLayers(GraphicsDevice gd, int id)
     {
-        var m1 = new Image<Rgba32>(1, 1);
-        var m2 = new Image<Rgba32>(1, 1);
-        var m3 = new Image<Rgba32>(1, 1);
-        var m4 = new Image<Rgba32>(1, 1);
-        var m5 = new Image<Rgba32>(1, 1);
-        var m6 = new Image<Rgba32>(1, 1);
+
+        var bl = new BackgroundLayers();
         var walls = new MapManager.Wall[1,1];
 
-        Map.MapDecypher(br, offset, id, 0, out m1, out m2, out m3, out m4, out m5, out m6, out walls);
-        return (m1, m2, m3, m4, m5, m6, walls);
+        Map.MapDecypher(gd, br, offset, id, 0, out bl, out walls);
+        return (bl, walls);
 
     }
 

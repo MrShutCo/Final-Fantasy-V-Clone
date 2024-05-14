@@ -20,9 +20,7 @@
     <None Remove="RomReader\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="RomReader\" />
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0" />
   </ItemGroup>

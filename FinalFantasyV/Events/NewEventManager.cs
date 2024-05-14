@@ -108,8 +108,13 @@ public class NewEventManager
     int ForwardToNextFF(List<List<byte>> bytes, int start)
     {
         int offset = 2;
-        while (bytes[start + offset][0] != 0xFF)
+        int numOfFFSeen = 0;
+        while (numOfFFSeen <= 2 && start+offset < bytes.Count)
         {
+            if (bytes[start + offset][0] == 0xFF)
+            {
+                numOfFFSeen++;
+            }
             offset++;
         }
 

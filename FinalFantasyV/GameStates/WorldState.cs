@@ -16,13 +16,7 @@ namespace FinalFantasyV.GameStates
         public StateStack stateStack { get; set; }
         public readonly WorldCharacter WorldCharacter;
         public WorldCharacter[] Objects;
-        
-        private Texture2D _bg1H;
-        private Texture2D _bg1L;
-        private Texture2D _bg2H;
-        private Texture2D _bg2L;
-        private Texture2D _bg3H;
-        private Texture2D _bg3L;
+
         private MapManager.Wall[,] _walls;
         
         private readonly Camera _camera;
@@ -31,11 +25,13 @@ namespace FinalFantasyV.GameStates
 
         private Menu _menu;
 
-        private EventManager _eventManager;
         private NewEventManager _newEvent;
         private Queue<IGameEvent> _events;
+        private BackgroundLayers _backgroundLayers;
 
         private PartyState _partyState;
+        
+        
 
         public WorldState(ContentManager cm)
 		{
@@ -46,35 +42,21 @@ namespace FinalFantasyV.GameStates
             var menuTex = cm.Load<Texture2D>("fontmenu");
             _menu = new();
             WorldCharacter = new WorldCharacter(new SpriteSheet(FF5.Bartz, 16, 16, new Vector2(365, 452), new Vector2(4, 4)), 
-                new Vector2(33*16, 25*16));
+                new Vector2(34*16, 42*16));
             _camera = new Camera();
             WorldCharacter.DoneMovement += CheckNewTile;
             WorldCharacter.IsVisible = true;
             Objects = new WorldCharacter[32];
             _rom = new RomGame();
             
-            _eventManager = new EventManager();
-            ChangeMap(32);
+            //ChangeMap(32);
+            ChangeMap(0);
         }
 
         private void ChangeMap(int newMapId)
         {
             GraphicsDevice gd = FF5.Graphics.GraphicsDevice;
-
-            var img = _rom.GetLayers(newMapId);
-            _bg1H = SpriteSheet.ConvertToTex(gd, img.Item1);
-            _bg1L = SpriteSheet.ConvertToTex(gd, img.Item2);
-            _bg2H = SpriteSheet.ConvertToTex(gd, img.Item3);
-            _bg2L = SpriteSheet.ConvertToTex(gd, img.Item4);
-            _bg3H = SpriteSheet.ConvertToTex(gd, img.Item5);
-            _bg3L = SpriteSheet.ConvertToTex(gd, img.Item6);
-            _walls = img.Item7;
-            /*ImageExtensions.SaveAsPng(img.Item1, "bg1H.png");
-            ImageExtensions.SaveAsPng(img.Item2, "bg1L.png");
-            ImageExtensions.SaveAsPng(img.Item3, "bg2H.png");
-            ImageExtensions.SaveAsPng(img.Item4, "bg2L.png");
-            ImageExtensions.SaveAsPng(img.Item5, "bg3H.png");
-            ImageExtensions.SaveAsPng(img.Item6, "bg3L.png");*/
+            (_backgroundLayers, _walls) = _rom.GetLayers(gd, newMapId);
             _rom.Update(newMapId);
             _exits = _rom.Map.Exits;
             Objects = SpriteSheet.LoadSprites(_rom.Map);
@@ -95,18 +77,11 @@ namespace FinalFantasyV.GameStates
         {
             spriteBatch.Begin(transformMatrix: _camera.Transform);
 
-            spriteBatch.Draw(_bg3H, new Vector2(), Color.White);
-            spriteBatch.Draw(_bg3L, new Vector2(), Color.White);
-
-            spriteBatch.Draw(_bg2H, new Vector2(), Color.White);
-            spriteBatch.Draw(_bg1H, new Vector2(), Color.White);
-
+            _backgroundLayers.DrawBelowCharacter(spriteBatch);
             WorldCharacter.Draw(spriteBatch);
             foreach (var s in Objects)
                 s.Draw(spriteBatch);
-            
-            spriteBatch.Draw(_bg2L, new Vector2(), Color.White);
-            spriteBatch.Draw(_bg1L, new Vector2(), Color.White);
+            _backgroundLayers.DrawAboveCharacter(spriteBatch);
             spriteBatch.End();
         }
 
