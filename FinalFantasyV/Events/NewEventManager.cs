@@ -18,6 +18,15 @@ public class NewEventManager
         var e = rom.Map.GetEventsProperties(x,y);
         var gameEvents = new Queue<IGameEvent>();
         if (e is null) return new Queue<IGameEvent>();
+
+        var ffsSeen = new List<int>();
+        for (int i = 0; i < e.bytes.Count; i++)
+        {
+            if (e.bytes[i][0] == 0xFF)
+            {
+                ffsSeen.Add(i);
+            }
+        }
         
         Console.WriteLine(e.bytes);
         for (int i = 0; i < e.bytes.Count; i++)
@@ -49,6 +58,12 @@ public class NewEventManager
                 if (!eventFlags[byteGrouping[1]])
                     i += ForwardToNextFF(e.bytes, i);
             }
+            else if (action is 0xE0 or 0xE1 or 0xE3)
+            {
+                var mapIdx = CombineBytes(byteGrouping[1], byteGrouping[2]) & 0x03FF;
+                var (mapX, mapY) = (byteGrouping[3], byteGrouping[4]);
+                Console.WriteLine($"Change Map: {mapIdx} at ({mapX},{mapY})");
+            }
 
             else if (action == 0xC7)
             {
@@ -62,6 +77,8 @@ public class NewEventManager
             {
                 var (byteCount, repeatTimes) = (byteGrouping[2], byteGrouping[1]);
                 Console.WriteLine($"Repeat the next {byteCount} byte(s) {repeatTimes} times (Parallel)");
+                var events = ProcessNextNBytes(rom, e, i, byteCount);
+                gameEvents.Enqueue(new ParallelRepeatEvent(events, byteCount, repeatTimes));
             }
             
             else if (action == 0xCE)
@@ -109,16 +126,16 @@ public class NewEventManager
     {
         int offset = 2;
         int numOfFFSeen = 0;
-        while (numOfFFSeen <= 2 && start+offset < bytes.Count)
+        while (numOfFFSeen < 1 && start+offset < bytes.Count)
         {
-            if (bytes[start + offset][0] == 0xFF)
+            if (bytes[start + offset][0] == 0xFF && bytes[start+offset].Count == 1)
             {
                 numOfFFSeen++;
             }
             offset++;
         }
 
-        return offset;
+        return offset-1;
     }
 
     IGameEvent processSingleAction(RomGame rom, List<byte> byteGrouping)
@@ -148,9 +165,10 @@ public class NewEventManager
             
         if (action == 0xC8)
         {
-            //var dialogueOffset = CombineBytes(byteGrouping[1], byteGrouping[2]);
-            //var text = rom.SpeechTxt[dialogueOffset];
-            //Console.WriteLine($"Display Dialogue: '{text}'");
+            var dialogueOffset = CombineBytes(byteGrouping[1], byteGrouping[2]);
+            var text = rom.SpeechTxt[dialogueOffset];
+            Console.WriteLine($"Display Dialogue: '{text}'");
+            return new EventDialogue(text);
         }
 
         return new EventDoNothing();

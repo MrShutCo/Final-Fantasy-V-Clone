@@ -1,5 +1,6 @@
 ﻿using System.Reflection.Metadata;
 using Engine.RomReader;
+using FinalFantasyV.Sprites;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SixLabors.ImageSharp;
@@ -96,6 +97,7 @@ namespace FinalFantasyV
 		public static WorldCharacter[] LoadSprites(MapManager map)
 		{
 			var w = new WorldCharacter[map.Npcs.Count];
+			
 			for (int i = 0; i < map.Npcs.Count; i++)
 			{
 				var gid = map.Npcs[i].graphicId;
@@ -139,9 +141,13 @@ namespace FinalFantasyV
 				
 				Vector2 pos = new Vector2(map.Npcs[i].x * 16, map.Npcs[i].y * 16);
 				
-				w[i] = new WorldCharacter(new SpriteSheet(tex, 16, 16, offset, new Vector2(4,4)), pos, map.Npcs[i].walkingParam);
+				w[i] = new WorldNPC(new SpriteSheet(tex, 16, 16, offset, new Vector2(4,4)), pos, map.Npcs[i]);
 
-				if (gid >= 78 && gid <= 80) w[i].IsVisible = false;
+				//if (gid >= 78 && gid <= 80) w[i].IsVisible = false;
+				if (!map.Npcs[i].IsVisibleOnStartup())
+				{
+					w[i].IsVisible = false;
+				}
 				
 				if (map.Npcs[i].direction == 0) w[i].Face(ECharacterMove.Up);
 				if (map.Npcs[i].direction == 1) w[i].Face(ECharacterMove.Right);

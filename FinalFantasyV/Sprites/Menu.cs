@@ -7,6 +7,8 @@ namespace FinalFantasyV.Sprites
 	public class Menu
 	{
 
+		public const int NewLineIndex = 1000;
+		
 		private static Dictionary<string, int> itemIcons = new()
 		{
 			{"[Swrd]", 195}, {"[Shld]", 209}, {"[Knif]", 199}, {"[Shoe]", 157}, {"[Suit]", 163}, {"[Armr]", 211}, {"[Helm]", 210},
@@ -28,8 +30,15 @@ namespace FinalFantasyV.Sprites
         public static void DrawString(SpriteBatch sb, SpriteSheet menuData, string text, Vector2 startingPosition)
         {
 	        var tiles = GetTilesForText(text);
+	        var startingX = startingPosition.X;
 	        for (int i = 0; i < tiles.Count; i++)
 	        {
+		        if (tiles[i] == NewLineIndex)
+		        {
+			        startingPosition.X = startingX;
+			        startingPosition.Y += 16;
+			        continue;
+		        }
 		        var startingCoord = menuData.IndexOf(tiles[i]);
 		        menuData.Draw(sb, new Rectangle((int)startingCoord.X, (int)startingCoord.Y, menuData.Width, menuData.Height), startingPosition);
 		        startingPosition.X += 8;
@@ -82,9 +91,15 @@ namespace FinalFantasyV.Sprites
 				if (i < text.Length - 1)
 					index = CheckForLetterGrouping(text[i..(i + 2)]);
 
+				if (i < text.Length - 6 && text[i..(i + 5)] == "[EOL]")
+				{
+					index = NewLineIndex;
+					i += 4;
+				}
+
 				if (index == 0)
 					index = getSpriteSheetIndex(text[i]);
-				else
+				else if (index != NewLineIndex)
 					skipCount = 1;
 				
 				tiles.Add(index);
@@ -141,6 +156,9 @@ namespace FinalFantasyV.Sprites
 			if (s == "ir") return 143;
 			return 0;
 		}
+
+		private static List<char> Chars = ['\'', '"', ':', ';', ',', '(',')','/','!','?','.','%'];
+		private static List<int> CharIndices = [121,122,123,124,125,126,127,128,129,130,131,173];
 		
 		static int getSpriteSheetIndex(char ch)
 		{
@@ -153,10 +171,10 @@ namespace FinalFantasyV.Sprites
 				coord = 9;
 			else if (char.IsNumber(ch))
 				coord = ch - 48 + 51;
-			else if (ch == '/') coord = 128;
-			else if (ch == '.') coord = 131;
-			else if (ch == ':') coord = 123;
-			else if (ch == '%') coord = 173;
+			var idx = Chars.IndexOf(ch);
+			if (idx != -1)
+				coord = CharIndices[idx];
+			
 			return coord;
         }
 		

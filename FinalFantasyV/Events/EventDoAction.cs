@@ -26,6 +26,11 @@ public class EventDoAction : IGameEvent
             _objectId = (byte)(data[0] & 0x7F);
             _action = data[1];
         }
+
+        if (IsParty && _action >= 16)
+        {
+            _action += 16;
+        }
     }
 
     public void OnStart(PartyState partyState, WorldState ws)
@@ -33,34 +38,38 @@ public class EventDoAction : IGameEvent
         
         var actor = _objectId == 0 ? "Party" : $"Object {_objectId}"; 
         var s = $"Do Action ({actor}): ";
+        
         if (_action == 0x01) Console.WriteLine(s + "Move Up");
         if (_action == 0x02) Console.WriteLine(s + "Move Right");
         if (_action == 0x03) Console.WriteLine(s + "Move Down");
         if (_action == 0x04) Console.WriteLine(s + "Move Left");
         if (_action == 0x09) Console.WriteLine(s + "Show Object");
         if (_action == 0x10) Console.WriteLine(s + "Hide Object");
-        if (_action == 16) Console.WriteLine(s + "Face Up");
-        if (_action == 18) Console.WriteLine(s + "Face Right");
-        if (_action == 20) Console.WriteLine(s + "Face Down");
-        if (_action == 22) Console.WriteLine(s + "Face Down");
+        if (_action == 32) Console.WriteLine(s + "Face Up");
+        if (_action == 34) Console.WriteLine(s + "Face Right");
+        if (_action == 36) Console.WriteLine(s + "Face Down");
+        if (_action == 38) Console.WriteLine(s + "Face Left");
         
         var charToAct = ws.WorldCharacter;
         if (!IsParty)
             charToAct = ws.Objects[_objectId];
-        
 
-        if (_action == 0x1) charToAct.Move(ECharacterMove.Up);
-        if (_action == 0x2) charToAct.Move(ECharacterMove.Right);
-        if (_action == 0x3) charToAct.Move(ECharacterMove.Down);
-        if (_action == 0x4) charToAct.Move(ECharacterMove.Left);
+        if (_action == 0x1) charToAct.Move(ECharacterMove.Up, WorldCharacter.NormalWalkingSpeed);
+        else if (_action == 0x2) charToAct.Move(ECharacterMove.Right, WorldCharacter.NormalWalkingSpeed);
+        else if (_action == 0x3) charToAct.Move(ECharacterMove.Down, WorldCharacter.NormalWalkingSpeed);
+        else if (_action == 0x4) charToAct.Move(ECharacterMove.Left, WorldCharacter.NormalWalkingSpeed);
 
-        if (_action == 9) charToAct.IsVisible = true;
-        if (_action == 10) charToAct.IsVisible = false;
+        else if (_action == 9) charToAct.IsVisible = true;
+        else if (_action == 10) charToAct.IsVisible = false;
         
-        if (_action == 16) charToAct.Face(ECharacterMove.Up);
-        if (_action == 18) charToAct.Face(ECharacterMove.Right);
-        if (_action == 20) charToAct.Face(ECharacterMove.Down);
-        if (_action == 22) charToAct.Face(ECharacterMove.Left);
+        else if (_action == 32) charToAct.Face(ECharacterMove.Up);
+        else if (_action == 34) charToAct.Face(ECharacterMove.Right);
+        else if (_action == 36) charToAct.Face(ECharacterMove.Down);
+        else if (_action == 38) charToAct.Face(ECharacterMove.Left);
+        else
+        {
+            charToAct.SetAction(_action);
+        }
         if (_action > 0x4)
             Completed?.Invoke();
         hasActed = true;

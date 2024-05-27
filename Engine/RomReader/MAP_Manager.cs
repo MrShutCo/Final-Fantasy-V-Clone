@@ -2148,6 +2148,7 @@ namespace Engine.RomReader
             output = "Id " + id.ToString("X3") + ": " +
                      begin.ToString("X4") + " to " + end.ToString("X4") + "\r\n\r\n";
 
+            int i = 0;
             // Load every NPC in map 'id'
             for (long currentPos = begin; currentPos < end; currentPos += 7)
             {
@@ -2213,6 +2214,7 @@ namespace Engine.RomReader
                     //graphics.DrawImage(bmp, dstRect, 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel, attr);
                 }
                 //}
+                i++;
 
                 output += "\r\n------------------------------------------\r\n";
             }
@@ -3229,7 +3231,7 @@ namespace Engine.RomReader
 
         //string eventstring;
 
-
+        public List<int> IndicesOfExtendedEvents;
 
         /**
         * Event
@@ -3247,6 +3249,7 @@ namespace Engine.RomReader
         public Event(long address, byte[] data, BinaryReader br, int headerOffset)
         {
             this.address = address;
+            IndicesOfExtendedEvents = [];
 
             //4 bytes
             //  2B: Origin Coordinates
@@ -3554,10 +3557,31 @@ namespace Engine.RomReader
         public byte palette;
         public byte direction;
         public byte unknown;
-        string dialogue;
+        public List<(string, List<ushort>)> dialogues;
 
+
+        private static readonly HashSet<int> VisibleActionIds =
+        [
+            8, 9, 25, 26, 32, 40, 41, 42, 50, 51, 74, 86, 87, 88, 90, 95, 96, 97, 98, 99,
+            100, 101, 102, 103, 104, 107, 112, 113, 114, 115, 116, 117, 118, 119, 120, 123,
+            124, 125, 126, /*128,*/ 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
+            142, 143, 144, 145, 146, 147, 148, 149, 150, 152, 154, 157, 159, 160, 161, 163,
+            165, 166, 168, 169, 170, 172, 174, 175, 176, 177, 178, 181, 192, 193, 194, 195,
+            196, 197, 198, 199, 200, 201, 208, 209, 210, 211, 212, 213, 223, 224, 225, 226,
+            227, 228, 229, 230, 231, 232, 233, 234, 242, 243, 244, 248, 249, 250, 251, 254,
+            255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 270, 272, 273, 274,
+            275, 279, 280, 281, 282, 288, 289, 292, 293, 294, 295, 296, 297, 298, 299, 300,
+            301, 302, 303, 306, 307, 308, 309, 310, 311, 312, 313, 314, 318, 337, 339, 342,
+            343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358,
+            359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 384, 385, 448, 562, 563,
+            564, 565, 566, 567, 568, 569, 570, 571, 572, 573, 579, 639, 640, 641, 642, 643,
+            644, 645, 646, 647, 648, 649, 650, 651, 652, 666, 667, 669, 672, 674, 675, 676,
+            677, 678, 679, 680, 681, 682, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695,
+            696, 704, 714, 752, 753, 754, 757, 758, 759, 760, 761, 768, 769, 770, 771, 774,
+            775, 864, 865, 866, 867, 868, 869, 870, 871, 872, 873, 874, 875, 876, 880, 889,
+            917, 918, 919
+        ];
         
-
         /**
         * NPC
         * 
@@ -3584,6 +3608,7 @@ namespace Engine.RomReader
             //byte    6 Palette (mask with 0x07)
             //byte    6 Direction (mask with 0xE0)
 
+            dialogues = new List<(string, List<ushort>)>();
             this.address      = address;
             this.actionId     = (data[0] + data[1] * 0x0100) & 0x3FFF;
             this.graphicId    = data[2];
@@ -3592,32 +3617,40 @@ namespace Engine.RomReader
             this.walkingParam = data[5];
             this.palette      = (byte)((data[6] & 0x03) >> 0x00);
             this.direction    = (byte)((data[6] & 0xE0) >> 0x05);
-            this.unknown      = (byte)((data[6] & 0x18) >> 0x03);
+            this.unknown      = (byte)((data[6] & 0x1C));
 
             string actions;
             List<int> speechId = getSpeechId(br, headerOffset, actionId, out actions);
-            dialogue += "Actions:\r\n------------------------------------------\r\n";
-            dialogue += actions + "\r\n\r\n";
+            //dialogue += "Actions:\r\n------------------------------------------\r\n";
+            //dialogue += actions + "\r\n\r\n";
 
             if (speechId.Count > 0)
             {
                 foreach(int item in speechId){
-                    dialogue += "Dialogue id: ";
+                    /*dialogue += "Dialogue id: ";
                     dialogue += item.ToString("X4") + "\r\n------------------------------------------\r\n";
                     if ((item & 0x07FF) <= speechTxt.Count)
                         dialogue += speechTxt[item & 0x07FF];
                     else
                         dialogue += "<Not a dialogue>";
-                    dialogue += "\r\n\r\n\r\n";
+                    dialogue += "\r\n\r\n\r\n";*/
+                    if ((item & 0x07FF) <= speechTxt.Count)
+                    {
+                        dialogues.Add((speechTxt[item & 0x07FF], new List<ushort>()));
+                    }
                 }
             }
             else
             {
-                dialogue += "<Action>\r\n";
+                //dialogue += "<Action>\r\n";
             }
         }
 
-
+        public bool IsVisibleOnStartup()
+        {
+            bool contains =  VisibleActionIds.Contains(actionId);
+            return contains;
+        }
 
         /**
         * getSpeechId
@@ -3716,7 +3749,7 @@ namespace Engine.RomReader
             output += "\r\n";
 
             //HACKME Research NPC Actions
-            output += dialogue.Replace("[EOL]", "\r\n").Replace("[01]", "\r\n") + "\r\n";
+            //output += dialogue.Replace("[EOL]", "\r\n").Replace("[01]", "\r\n") + "\r\n";
 
             return output;
         }

@@ -23,6 +23,9 @@ public class FF5 : Game
     public static Texture2D Galuf;
     public static Texture2D Faris;
 
+    public static Texture2D MenuTexture;
+    public static TilesetInfo MenuTilesetInfo;
+
     BattleUnit bartz;
     WorldCharacter worldCharacter;
     Character bartzC;
@@ -72,6 +75,8 @@ public class FF5 : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         stateStack = new StateStack();
         NPCTexture = Content.Load<Texture2D>("npcs");
+        MenuTexture = Content.Load<Texture2D>("fontmenu");
+        MenuTilesetInfo = MapIO.ReadTileSet(Content, "Tilemaps/Menu.tsj");
         Bartz = Content.Load<Texture2D>("Bartz");
         Lenna = Content.Load<Texture2D>("Lenna");
         Galuf = Content.Load<Texture2D>("Galuf");
