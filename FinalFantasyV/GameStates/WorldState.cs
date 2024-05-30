@@ -18,6 +18,8 @@ namespace FinalFantasyV.GameStates
         public StateStack stateStack { get; set; }
         public readonly WorldCharacter WorldCharacter;
         public WorldCharacter[] Objects;
+        private PartyState _partyState;
+        public readonly TextPopup TextPopup;
 
         private MapManager.Wall[,] _walls;
         
@@ -25,15 +27,13 @@ namespace FinalFantasyV.GameStates
         private readonly RomGame _rom;
         private List<MapExit> _exits;
 
-        private Menu _menu;
-
-        private NewEventManager _newEvent;
+        private readonly NewEventManager _newEvent;
         private Queue<IGameEvent> _events;
         private BackgroundLayers _backgroundLayers;
-
-        private PartyState _partyState;
-        private TextPopup _textPopup;
         
+        private Menu _menu;
+        private bool _isEventComplete;
+        private bool _isPaused = false;
 
         public WorldState(ContentManager cm)
 		{
@@ -41,7 +41,6 @@ namespace FinalFantasyV.GameStates
             // Lenna: new Vector2(365-1, 452-7)
             // Galuf new Vector2(365-4, 452-13)
             _newEvent = new();
-            var menuTex = cm.Load<Texture2D>("fontmenu");
             _menu = new();
             WorldCharacter = new WorldCharacter(new SpriteSheet(FF5.Bartz, 16, 16, new Vector2(365, 452), new Vector2(4, 4)), 
                 new Vector2(32*16, 51*16));
@@ -50,7 +49,7 @@ namespace FinalFantasyV.GameStates
             WorldCharacter.IsVisible = true;
             Objects = new WorldCharacter[32];
             _rom = new RomGame();
-            _textPopup = new();
+            TextPopup = new();
             
             // World Map
             //ChangeMap(0, new Vector2(156 * 16, 150 * 16));
@@ -90,36 +89,36 @@ namespace FinalFantasyV.GameStates
                 s.Draw(spriteBatch);
             _backgroundLayers.DrawAboveCharacter(spriteBatch, WorldCharacter.Position);
             spriteBatch.End();
-            _textPopup.Render(spriteBatch);
+            TextPopup.Render(spriteBatch);
         }
 
-        void OnEventComplete()
+        private void OnEventComplete()
         {
-            _events.Peek().Completed = null;
-            _events.Dequeue();
-            if (_events.Count > 0)
-            {
-                _events.Peek().Completed += OnEventComplete;
-                _events.Peek().OnStart(_partyState, this);
-            }
+            _isEventComplete = true;
         }
 
         public void SetFlag(int flag, bool status)
         {
             _newEvent.SetFlag(flag, status);
         }
-
-        private bool isPaused = false;
         
         public void Update(GameTime gameTime, PartyState ps)
         {
             _partyState = ps; // TODO: This is a hack so events can have acccess. I dont like it 
+
+            if (_isEventComplete)
+            {
+                _isEventComplete = false;
+                _events.Peek().Completed = null;
+                _events.Dequeue();
+                if (_events.Count > 0)
+                {
+                    _events.Peek().Completed += OnEventComplete;
+                    _events.Peek().OnStart(_partyState, this);
+                }
+            }
             
-            //_textPopup.Update(gameTime);
-            //if (_textPopup.IsActive)
-            //{
-            //    return;
-            //}
+            TextPopup.Update(gameTime);
             
             WorldCharacter.Update(gameTime);
             foreach (var s in Objects)
@@ -129,16 +128,16 @@ namespace FinalFantasyV.GameStates
             
             if (_events?.Count > 0)
             {
-                if (InputHandler.KeyPressed(Keys.Q) && isPaused == false)
+                if (InputHandler.KeyPressed(Keys.Q) && _isPaused == false)
                 {
-                    isPaused = true;
+                    _isPaused = true;
                 }
-                else if (InputHandler.KeyPressed(Keys.Q) && isPaused == true)
+                else if (InputHandler.KeyPressed(Keys.Q) && _isPaused)
                 {
-                    isPaused = false;
+                    _isPaused = false;
                 }
 
-                if (isPaused) return;
+                if (_isPaused) return;
                 _events.Peek().Update(gameTime, this);
                 return;
             }
@@ -146,25 +145,25 @@ namespace FinalFantasyV.GameStates
             var tilePos = WorldCharacter.GetTilePosition();
             if (Keyboard.GetState().IsKeyDown(Keys.Left))
             {
-                //if (_walls[(int)tilePos.X-1, (int)tilePos.Y].PassableRight && CanWalkHere((int)tilePos.X-1, (int)tilePos.Y))
+                if (_walls[(int)tilePos.X-1, (int)tilePos.Y].PassableRight && CanWalkHere((int)tilePos.X-1, (int)tilePos.Y))
                     WorldCharacter.Move(ECharacterMove.Left, WorldCharacter.FastWalkingSpeed);
                 WorldCharacter.Face(ECharacterMove.Left);
             }
             if (Keyboard.GetState().IsKeyDown(Keys.Right))
             {
-                //if (_walls[(int)tilePos.X+1, (int)tilePos.Y].PassableLeft && CanWalkHere((int)tilePos.X+1, (int)tilePos.Y))
+                if (_walls[(int)tilePos.X+1, (int)tilePos.Y].PassableLeft && CanWalkHere((int)tilePos.X+1, (int)tilePos.Y))
                     WorldCharacter.Move(ECharacterMove.Right,WorldCharacter.FastWalkingSpeed);
                 WorldCharacter.Face(ECharacterMove.Right);
             }
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
-                //if (_walls[(int)tilePos.X, (int)tilePos.Y-1].PassableDown && CanWalkHere((int)tilePos.X, (int)tilePos.Y-1))
+                if (_walls[(int)tilePos.X, (int)tilePos.Y-1].PassableDown && CanWalkHere((int)tilePos.X, (int)tilePos.Y-1))
                     WorldCharacter.Move(ECharacterMove.Up,WorldCharacter.FastWalkingSpeed);
                 WorldCharacter.Face(ECharacterMove.Up);
             }
             if (Keyboard.GetState().IsKeyDown(Keys.Down))
             {
-                //if (_walls[(int)tilePos.X, (int)tilePos.Y+1].PassableUp && CanWalkHere((int)tilePos.X, (int)tilePos.Y+1))
+                if (_walls[(int)tilePos.X, (int)tilePos.Y+1].PassableUp && CanWalkHere((int)tilePos.X, (int)tilePos.Y+1))
                     WorldCharacter.Move(ECharacterMove.Down,WorldCharacter.FastWalkingSpeed);
                 WorldCharacter.Face(ECharacterMove.Down);
             }
@@ -183,6 +182,11 @@ namespace FinalFantasyV.GameStates
                 _events = _newEvent.ProcessEvent(_rom, events);
                 _events.Peek().Completed += OnEventComplete;
                 _events.Peek().OnStart(_partyState, this);
+            }
+
+            if (Keyboard.GetState().IsKeyDown(Keys.L))
+            {
+                TextPopup.ShowText("Galuf:  (Bartz)![EOL]  Is something wrong?[EOL][EOL][EOL](Bartz):  No... nothing at all...[EOL]  Maybe I'm just going crazy...?[EOL][EOL][EOL]Galuf:  Hmm... get out of the way!");
             }
 
             if (InputHandler.KeyPressed(Keys.Space))
@@ -206,10 +210,10 @@ namespace FinalFantasyV.GameStates
 
         public void ShowDialogue(string text)
         {
-            _textPopup.ShowText(text);
+            TextPopup.ShowText(text);
         }
 
-        public void HideDialogue() => _textPopup.IsActive = false;
+        public void HideDialogue() => TextPopup.IsActive = false;
 
         private void CheckNewTile()
         {

@@ -59,22 +59,19 @@ public class ParallelRepeatEvent : IGameEvent
             _timesRepeated++;
             if (_timesRepeated == _repeatCount)
             {
-                Completed?.Invoke();
                 Console.WriteLine("====== Parallel Repeat Event Done ======\n");
-                foreach (var e in _parallelEvents) e.Completed = null;
+                foreach (var e in _parallelEvents) e.Completed -= OnComplete;
+                Completed?.Invoke();
+                return;
             }
-            else
-            {
-
-                _completedActions = 0;
-                StartAllActions(_partyState, ws);
-            }
+            _completedActions = 0;
+            StartAllActions(_partyState, ws);
         }
-        
         foreach (var e in _parallelEvents)
         {
             e.Update(gameTime, ws);
         }
+        
     }
 }
 
@@ -116,8 +113,9 @@ public class ParallelEvents : IGameEvent
     {
         if (_completedActions >= _parallelEvents.Count)
         {
-            Completed?.Invoke();
             Console.WriteLine("====== Parallel Event Done ======\n");
+            Completed?.Invoke();
+
             foreach (var e in _parallelEvents) e.Completed = null;
         }
         

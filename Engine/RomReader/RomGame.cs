@@ -135,7 +135,7 @@ public class RomGame
     public RomGame()
     {
 
-        br = new BinaryReader(File.Open("Final Fantasy V 1.10 (RPGe).sfc", FileMode.Open));
+        br = new BinaryReader(File.Open("FF5.sfc", FileMode.Open));
 
         (_, offset) = CheckSNESHeader(br);
 

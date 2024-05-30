@@ -13,6 +13,79 @@ public class EventDoAction : IGameEvent
     private byte _objectId;
 
     private bool hasActed;
+    
+    Dictionary<byte, string> actions = new Dictionary<byte, string>
+        {
+            {0, "Do Nothing"},
+            {1, "Move Up"},
+            {2, "Move Right"},
+            {3, "Move Down"},
+            {4, "Move Left"},
+            {5, "Jump 1 Tile"},
+            {6, "Jump 2 Tiles"},
+            {7, "Toggle Sprite Priority (Top Half)"},
+            {8, "Toggle Sprite Priority (Bottom Half)"},
+            {9, "Show Object"},
+            {10, "Hide Object"},
+            {11, "Toggle Walking Animation"},
+            {16, "Set Animation Speed to Normal"},
+            {17, "Set Animation Speed to Slowest"},
+            {18, "Set Animation Speed to Slow"},
+            {19, "Set Animation Speed to Fast"},
+            {20, "Toggle Layer Priority (Top Half)"},
+            {21, "Toggle Layer Priority (Bottom Half)"},
+            {32, "Face Up"},
+            {33, "Face Up (Walking)"},
+            {34, "Face Right"},
+            {35, "Face Right (Walking)"},
+            {36, "Face Down"},
+            {37, "Face Down (Walking)"},
+            {38, "Face Left"},
+            {39, "Face Left (Walking)"},
+            {40, "Face Down (Alt.)"},
+            {41, "Face Up (Alt.)"},
+            {42, "Face Left (Alt.)"},
+            {43, "Face Left (Walking, Alt.)"},
+            {44, "Face Down (h-flip)"},
+            {45, "Face Up (h-flip)"},
+            {46, "Face Left (h-flip)"},
+            {47, "Face Right (h-flip)"},
+            {48, "Face Down (Right Hand <)"},
+            {49, "Face Down (Right Hand -)"},
+            {50, "Face Down (Right Hand >)"},
+            {51, "Face Down (Left Hand >)"},
+            {52, "Face Down (Left Hand -)"},
+            {53, "Face Down (Left Hand <)"},
+            {54, "Face Up (Right Hand >)"},
+            {55, "Face Up (Right Hand <)"},
+            {56, "Face Up (Left Hand <)"},
+            {57, "Face Up (Left Hand >)"},
+            {58, "Face Left (Arm Up)"},
+            {59, "Face Left (Arm Forward)"},
+            {60, "Face Right (Arm Up)"},
+            {61, "Face Right (Arm Forward)"},
+            {62, "Face Down (Head Down)"},
+            {63, "Face Up (Head Down)"},
+            {64, "Face Left (Head Down)"},
+            {65, "Face Right (Head Down)"},
+            {66, "Knocked Down"},
+            {67, "Knocked Down (h-flip)"},
+            {68, "Kick Left"},
+            {69, "Kick Right"},
+            {70, "Laugh 1"},
+            {71, "Laugh 2"},
+            {72, "Face Down (Crouching)"},
+            {73, "Face Down (Jumping)"},
+            {74, "Face Down (Surprised)"},
+            {75, "Face Up (Alt.)"},
+            {76, "Face Down (Angry)"},
+            {77, "Face Up (Arms Up <>)"},
+            {78, "Face Up (Arms Up ><)"},
+            {79, "Face Down (Head <)"},
+            {80, "Face Down (Head >)"},
+            {81, "Face Up (Symmetric)"}
+        };
+    
     public EventDoAction(List<byte> data)
     {
         if (data.Count == 1)
@@ -39,16 +112,8 @@ public class EventDoAction : IGameEvent
         var actor = _objectId == 0 ? "Party" : $"Object {_objectId}"; 
         var s = $"Do Action ({actor}): ";
         
-        if (_action == 1) Console.WriteLine(s + "Move Up");
-        if (_action == 2) Console.WriteLine(s + "Move Right");
-        if (_action == 3) Console.WriteLine(s + "Move Down");
-        if (_action == 4) Console.WriteLine(s + "Move Left");
-        if (_action == 9) Console.WriteLine(s + "Show Object");
-        if (_action == 10) Console.WriteLine(s + "Hide Object");
-        if (_action == 32) Console.WriteLine(s + "Face Up");
-        if (_action == 34) Console.WriteLine(s + "Face Right");
-        if (_action == 36) Console.WriteLine(s + "Face Down");
-        if (_action == 38) Console.WriteLine(s + "Face Left");
+        Console.WriteLine(s + actions[_action]);
+        
     }
 
     public void OnStart(PartyState partyState, WorldState ws)

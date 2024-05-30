@@ -63,7 +63,6 @@ public class FF5 : Game
     {
         // TODO: Add your initialization logic here
         TargetElapsedTime = TimeSpan.FromSeconds(1d / 60d);
-        IsFixedTimeStep = false;
         Graphics.ApplyChanges();
         bartzC = new Character(Hero.Butz);
         base.Initialize();

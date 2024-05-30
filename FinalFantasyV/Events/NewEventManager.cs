@@ -6,11 +6,12 @@ namespace FinalFantasyV.Events;
 
 public class NewEventManager
 {
-    public bool[] eventFlags = new bool[512];
+    public bool[] EventFlags = new bool[512];
+    public bool[] NpcSwitches = new bool[921];
     
     public void SetFlag(int flag, bool status)
     {
-        eventFlags[flag] = status;
+        EventFlags[flag] = status;
     }
 
     public Queue<IGameEvent> CheckCollisionOnEvent(RomGame rom, byte x, byte y)
@@ -43,25 +44,25 @@ public class NewEventManager
             if (action == 0xFB ) // Continue if flag == off and flag > 0xFF
             {
                 Console.WriteLine($"If Event Switch {byteGrouping[1] + 256} == Off");
-                if (eventFlags[byteGrouping[1] + 256]) 
+                if (EventFlags[byteGrouping[1] + 256]) 
                     i += ForwardToNextFF(bytes, i);
             }
             else if (action == 0xFC) // Continue if flag == on and flag > 0xFF
             {
                 Console.WriteLine($"If Event Switch {byteGrouping[1] + 256} == On");
-                if (!eventFlags[byteGrouping[1] + 256])
+                if (!EventFlags[byteGrouping[1] + 256])
                     i += ForwardToNextFF(bytes, i);
             }
             else if (action == 0xFD) // Continue if flag == if and flag <= 0xFF
             {
                 Console.WriteLine($"If Event Switch {byteGrouping[1]} == Off");
-                if (eventFlags[byteGrouping[1]])
+                if (EventFlags[byteGrouping[1]])
                     i += ForwardToNextFF(bytes, i);
             }
             else if (action == 0xFE) // Continue if flag == on and flag <= 0xFF
             {
                 Console.WriteLine($"If Event Switch {byteGrouping[1]} == On");
-                if (!eventFlags[byteGrouping[1]])
+                if (!EventFlags[byteGrouping[1]])
                     i += ForwardToNextFF(bytes, i);
             }
             else if (action is 0xE0 or 0xE1 or 0xE3)
@@ -86,6 +87,7 @@ public class NewEventManager
                 Console.WriteLine($"Repeat the next {byteCount} byte(s) {repeatTimes} times (Parallel)");
                 var events = ProcessNextNBytes(rom, bytes, i, byteCount);
                 gameEvents.Enqueue(new ParallelRepeatEvent(events, byteCount, repeatTimes));
+                i += events.Count;
             }
             
             else if (action == 0xCE)
@@ -153,9 +155,8 @@ public class NewEventManager
             return ProcessAction(byteGrouping);
         }
 
-        if (action >= 0x70 && action <= 0x76)
+        if (action is >= 0x70 and <= 0x76 or 0xB2 or 0xB3)
         {
-            var amount = action & 0xF;
             return new EventWait(byteGrouping);
         }
 
@@ -163,6 +164,8 @@ public class NewEventManager
         {
             return new EventSwitch(byteGrouping);
         }
+
+        if (action == 0xCA || action == 0xCB) return new NpcSwitch(byteGrouping);
         
         if (action == 0xD3) return new EventChangePosition(byteGrouping);
 

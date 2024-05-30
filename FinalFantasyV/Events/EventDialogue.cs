@@ -24,7 +24,11 @@ public class EventDialogue : IGameEvent
     {
         if (InputHandler.KeyReleased(Keys.Space))
         {
-            ws.HideDialogue();
+            ws.TextPopup.NextDialogue();
+        }
+
+        if (ws.TextPopup.IsActive == false)
+        {
             Completed?.Invoke();
         }
     }

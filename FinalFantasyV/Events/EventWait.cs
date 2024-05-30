@@ -21,6 +21,8 @@ public class EventWait : IGameEvent
         if (wait == 0x73) _waitTime = 1f;
         if (wait == 0x74) _waitTime = 1.5f;
         if (wait == 0x75) _waitTime = 2f;
+        if (wait == 0xB3) _waitTime = data[1];
+        if (wait == 0xB2) _waitTime = data[1] / 60.0f;
         Console.WriteLine($"Wait ({_waitTime}s)");
     }
     public void OnStart(PartyState partyState, WorldState ms)

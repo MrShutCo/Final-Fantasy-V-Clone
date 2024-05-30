@@ -134,18 +134,7 @@ public class Event
 
             if (nextInstruction is 0xFF or 0xCD)
             {
-                eventData.AddRange(addExtendedEvent(newbyteList[1] + newbyteList[2] * 0x0100, br, headerOffset));
-            }
-
-            if (nextInstruction == 0xCD)
-            {
-                    
-                /*var newActionId = newbyteList[1] + newbyteList[2] * 0x0100;
-                    var oldPos = br.BaseStream.Position;
-                    var position = CalculatePosition(br, newActionId,  headerOffset, out var ll);
-                    br.BaseStream.Position = position;
-                    eventData.AddRange(ReadEvent(br, headerOffset, ll));
-                    br.BaseStream.Position = oldPos;*/
+                eventData.AddRange(addExtendedEvent(newbyteList[1] + newbyteList[2] * 0x0100, br, headerOffset, nextInstruction == 0xCD));
             }
 
             //if (nextInstruction == 0xFF)
@@ -181,7 +170,7 @@ public class Event
         * 
         * @return an extended Event data (not) properly formatted
         */
-    private string extendedEvent(int eventId, BinaryReader br, int headerOffset){
+    /*private string extendedEvent(int eventId, BinaryReader br, int headerOffset){
         string output = "";
             
         long position = br.BaseStream.Position;
@@ -211,7 +200,7 @@ public class Event
             output += "  " + bank.ToString("X2") + "/" + offset.ToString("X4") + ":\t  ";
             func = br.ReadByte();
             output += func.ToString("X2") + " (";
-            for (int i = 0; i < getExtendedEventSize(func); i++)
+            for (int i = 0; i < EventWidth(func); i++)
             {
                 readenbyte = br.ReadByte();
                 output += readenbyte.ToString("X2") + " ";
@@ -237,7 +226,7 @@ public class Event
         br.BaseStream.Position = position;
 
         return output;
-    }
+    }*/
 
 
 
@@ -252,9 +241,10 @@ public class Event
         * 
         * @return an extended Event data (not) properly formatted
         */
-    private static List<List<byte>> addExtendedEvent(int eventId, BinaryReader br, int headerOffset)
+    private static List<List<byte>> addExtendedEvent(int eventId, BinaryReader br, int headerOffset, bool isSubroutine)
     {
         List<List<byte>> gameEvents = new();
+        isSubroutine = false;
         long position = br.BaseStream.Position;
 
         // C8/3320-C8/49DE Event data offsets  [3 bytes * 1940] (Big endian)
@@ -285,7 +275,9 @@ public class Event
 
             func = br.ReadByte();
             newbyteList.Add(func);
-            for (int i = 0; i < getExtendedEventSize(func); i++)
+            var width = EventWidth(func);
+            if (isSubroutine && func == 0xFF) width = 0; // Subroutines cant call other events, so 0xFF means end of subroutine
+            for (int i = 0; i < width; i++)
             {
                 readenbyte = br.ReadByte();
                 newbyteList.Add(readenbyte);
@@ -299,6 +291,11 @@ public class Event
                 {
                     newbyteList.Add(br.ReadByte());
                 }
+            }
+
+            if (func == 0xCD)
+            {
+                gameEvents.AddRange(addExtendedEvent(newbyteList[1] + newbyteList[2] * 0x0100, br, headerOffset, false));
             }
 
             gameEvents.Add(newbyteList);

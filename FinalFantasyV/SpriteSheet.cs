@@ -116,7 +116,7 @@ namespace FinalFantasyV
 				if (gid == 64) offset = new Vector2(272 + 8, 416 + 8);		// Blue man 
 				if (gid == 65 && pallete == 0) offset = new Vector2(272 + 8, 304); // Green woman
 				if (gid == 65 && pallete == 1) offset = new Vector2(272 + 8, 344); // Purple woman
-				if (gid == 60) offset = new Vector2(140, 384);							// Dancer
+				if (gid == 69) offset = new Vector2(140, 384);							// Dancer
 				if (gid == 38 && pallete == 0) offset = new Vector2(120,644);			// Girl brown
 				if (gid == 38 && pallete == 1) offset = new Vector2(120,664);			// Girl blue
 				if (gid == 68) offset = new Vector2(280, 192 - 8);					// Blue knight

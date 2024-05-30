@@ -56,9 +56,9 @@ public class RepeatSequentialEvents : IGameEvent
         }
         if (_isCompleteCurrentEvent)
         {
+            _isCompleteCurrentEvent = false;
             _sequentialEvents[_currentEvent].Completed += OnComplete;
             _sequentialEvents[_currentEvent].OnStart(_partyState, ws);
-            _isCompleteCurrentEvent = false;
         }
 
         _sequentialEvents[_currentEvent].Update(gameTime, ws);
