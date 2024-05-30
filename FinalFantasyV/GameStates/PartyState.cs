@@ -23,13 +23,13 @@ namespace FinalFantasyV.GameStates
                 new (Hero.Galuf),
                 new (Hero.Faris)
             };
-            HeroSprites = new SpriteSheet[]
-            {
+            HeroSprites =
+            [
                 new (cm.Load<Texture2D>("Lenna"), 30, 30, Vector2.Zero, Vector2.Zero),
                 new (cm.Load<Texture2D>("Bartz"), 30, 30, Vector2.Zero, Vector2.Zero),
                 new (cm.Load<Texture2D>("Galuf"), 30, 30, Vector2.Zero, Vector2.Zero),
                 new (cm.Load<Texture2D>("Faris"), 30, 30, Vector2.Zero, Vector2.Zero)
-            };
+            ];
             Slots[0].LeftHand = RomData.GetWeaponByName("[Swrd]Broad");
             Gil = 500;
             Inventory = new List<Item>

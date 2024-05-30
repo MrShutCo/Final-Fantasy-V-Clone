@@ -12,63 +12,70 @@ public class NewEventManager
     {
         eventFlags[flag] = status;
     }
-    
+
     public Queue<IGameEvent> CheckCollisionOnEvent(RomGame rom, byte x, byte y)
     {
         var e = rom.Map.GetEventsProperties(x,y);
+        if (e == null) return null;
+        return ProcessEvent(rom, e.bytes);
+    }
+    
+    public Queue<IGameEvent> ProcessEvent(RomGame rom, List<List<byte>> bytes)
+    {
         var gameEvents = new Queue<IGameEvent>();
-        if (e is null) return new Queue<IGameEvent>();
+        if (bytes is null) return new Queue<IGameEvent>();
 
         var ffsSeen = new List<int>();
-        for (int i = 0; i < e.bytes.Count; i++)
+        for (int i = 0; i < bytes.Count; i++)
         {
-            if (e.bytes[i][0] == 0xFF)
+            if (bytes[i][0] == 0xFF)
             {
                 ffsSeen.Add(i);
             }
         }
         
-        Console.WriteLine(e.bytes);
-        for (int i = 0; i < e.bytes.Count; i++)
+        Console.WriteLine(bytes);
+        for (int i = 0; i < bytes.Count; i++)
         {
-            var byteGrouping = e.bytes[i];
+            var byteGrouping = bytes[i];
             var action = byteGrouping[0];
 
             if (action == 0xFB ) // Continue if flag == off and flag > 0xFF
             {
                 Console.WriteLine($"If Event Switch {byteGrouping[1] + 256} == Off");
                 if (eventFlags[byteGrouping[1] + 256]) 
-                    i += ForwardToNextFF(e.bytes, i);
+                    i += ForwardToNextFF(bytes, i);
             }
             else if (action == 0xFC) // Continue if flag == on and flag > 0xFF
             {
                 Console.WriteLine($"If Event Switch {byteGrouping[1] + 256} == On");
                 if (!eventFlags[byteGrouping[1] + 256])
-                    i += ForwardToNextFF(e.bytes, i);
+                    i += ForwardToNextFF(bytes, i);
             }
             else if (action == 0xFD) // Continue if flag == if and flag <= 0xFF
             {
                 Console.WriteLine($"If Event Switch {byteGrouping[1]} == Off");
                 if (eventFlags[byteGrouping[1]])
-                    i += ForwardToNextFF(e.bytes, i);
+                    i += ForwardToNextFF(bytes, i);
             }
             else if (action == 0xFE) // Continue if flag == on and flag <= 0xFF
             {
                 Console.WriteLine($"If Event Switch {byteGrouping[1]} == On");
                 if (!eventFlags[byteGrouping[1]])
-                    i += ForwardToNextFF(e.bytes, i);
+                    i += ForwardToNextFF(bytes, i);
             }
             else if (action is 0xE0 or 0xE1 or 0xE3)
             {
                 var mapIdx = CombineBytes(byteGrouping[1], byteGrouping[2]) & 0x03FF;
-                var (mapX, mapY) = (byteGrouping[3], byteGrouping[4]);
+                var (mapX, mapY) = (byteGrouping[3] & 0x3F, byteGrouping[4] & 0x3F);
                 Console.WriteLine($"Change Map: {mapIdx} at ({mapX},{mapY})");
+                gameEvents.Enqueue(new EventChangeMap(byteGrouping));
             }
 
             else if (action == 0xC7)
             {
                 Console.WriteLine($"Execute the Next {byteGrouping[1]} byte(s) in Parallel");
-                var events = ProcessNextNBytes(rom, e, i, byteGrouping[1]);
+                var events = ProcessNextNBytes(rom, bytes, i, byteGrouping[1]);
                 gameEvents.Enqueue(new ParallelEvents(events, byteGrouping[1]));
                 i += events.Count;
             }
@@ -77,7 +84,7 @@ public class NewEventManager
             {
                 var (byteCount, repeatTimes) = (byteGrouping[2], byteGrouping[1]);
                 Console.WriteLine($"Repeat the next {byteCount} byte(s) {repeatTimes} times (Parallel)");
-                var events = ProcessNextNBytes(rom, e, i, byteCount);
+                var events = ProcessNextNBytes(rom, bytes, i, byteCount);
                 gameEvents.Enqueue(new ParallelRepeatEvent(events, byteCount, repeatTimes));
             }
             
@@ -85,7 +92,7 @@ public class NewEventManager
             {
                 var (byteCount, repeatTimes) = (byteGrouping[2], byteGrouping[1]);
                 Console.WriteLine($"Repeat the next {byteCount} byte(s) {repeatTimes} times (Sequential)");
-                var events = ProcessNextNBytes(rom, e, i, byteCount);
+                var events = ProcessNextNBytes(rom, bytes, i, byteCount);
                 gameEvents.Enqueue(new RepeatSequentialEvents(events, repeatTimes, byteCount));
                 i += events.Count;
             }
@@ -107,15 +114,15 @@ public class NewEventManager
         return gameEvents;
     }
 
-    List<IGameEvent> ProcessNextNBytes(RomGame rom, Event e, int startIndex, int count)
+    List<IGameEvent> ProcessNextNBytes(RomGame rom, List<List<byte>> bytes, int startIndex, int count)
     {
         var events = new List<IGameEvent>();
         int bytesProcessed = 0;
         int offset = 1;
         while (bytesProcessed < count)
         {
-            events.Add(processSingleAction(rom, e.bytes[startIndex+offset]));
-            bytesProcessed += e.bytes[startIndex + offset].Count;
+            events.Add(processSingleAction(rom, bytes[startIndex+offset]));
+            bytesProcessed += bytes[startIndex + offset].Count;
             offset++;
         }
 
@@ -149,7 +156,6 @@ public class NewEventManager
         if (action >= 0x70 && action <= 0x76)
         {
             var amount = action & 0xF;
-            Console.WriteLine($"Wait {amount}");
             return new EventWait(byteGrouping);
         }
 
@@ -165,7 +171,7 @@ public class NewEventManager
             
         if (action == 0xC8)
         {
-            var dialogueOffset = CombineBytes(byteGrouping[1], byteGrouping[2]);
+            var dialogueOffset = CombineBytes(byteGrouping[1], byteGrouping[2]) & 0x7FFF;
             var text = rom.SpeechTxt[dialogueOffset];
             Console.WriteLine($"Display Dialogue: '{text}'");
             return new EventDialogue(text);
@@ -176,16 +182,6 @@ public class NewEventManager
 
     EventDoAction ProcessAction(List<byte> data)
     {
-        var actor = data[0] < 0x80 ? "Party" : $"Object {data[0] & 0x7F}"; 
-        var s = $"Do Action ({actor}): ";
-        var action = data[0] < 0x80 ? data[0] : data[1];
-        if (action == 0x01) Console.WriteLine(s + "Move Up");
-        if (action == 0x02) Console.WriteLine(s + "Move Right");
-        if (action == 0x03) Console.WriteLine(s + "Move Down");
-        if (action == 0x04) Console.WriteLine(s + "Move Left");
-        if (action == 0x09) Console.WriteLine(s + "Show Object");
-        if (action == 0x10) Console.WriteLine(s + "Hide Object");
-        
         return new EventDoAction(data);
     }
 

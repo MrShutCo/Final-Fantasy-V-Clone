@@ -107,6 +107,7 @@ namespace FinalFantasyV
 				Vector2 offset = Vector2.Zero;
 				if (gid == 30) offset = new Vector2(0, 752-8);
 				if (gid == 36) offset = new Vector2(0, 640 + 4);			 // Barkeep
+				if (gid == 37) offset = new Vector2(120, 624);				// Red Sheep
 				if (gid == 52) offset = new Vector2(144-2, 592-8);
 				if (gid == 66 && pallete == 0) offset = new Vector2(140, 464); // Old man green
 				if (gid == 66 && pallete == 1) offset = new Vector2(0, 464); // Old man purple
@@ -123,6 +124,16 @@ namespace FinalFantasyV
 				if (gid == 57 && pallete == 1) offset = new Vector2(0, 408);				// Grey wolf
 				if (gid == 56 && pallete == 1) offset = new Vector2(140, 304);	// Chancellor
 				if (gid == 71) offset = new Vector2(280,256+8);				// Cid
+				if (gid == 72) offset = new Vector2(280, 384);				// Mid
+				if (gid == 50) offset = new Vector2(0, 304); // King
+				if (gid == 67 && pallete == 0) offset = new Vector2(0, 344); // Orange Scholar
+				if (gid == 67 && pallete == 1) offset = new Vector2(140, 344); // Blue Scholar
+				if (gid == 61) offset = new Vector2(241, 624); // Turtle
+				if (gid == 77)
+				{
+					offset = new Vector2(365, 452);
+					tex = FF5.Bartz;
+				}
 				if (gid == 78)
 				{
 					offset = new Vector2(365 - 1, 452 - 7);

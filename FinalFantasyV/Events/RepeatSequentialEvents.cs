@@ -44,17 +44,21 @@ public class RepeatSequentialEvents : IGameEvent
                 _timesCompleted++;
                 _currentEvent = 0;
             }
-            _sequentialEvents[_currentEvent].Completed += OnComplete;
-            _sequentialEvents[_currentEvent].OnStart(_partyState, ws);
-            _isCompleteCurrentEvent = false;
+            
         }
         
-        if (_timesCompleted == NumTimes-1)
+        if (_timesCompleted == NumTimes)
         {
             _sequentialEvents[_currentEvent].Completed -= OnComplete;
             Console.WriteLine("====== Repeat Event Done ======\n");
             Completed?.Invoke();
             return;
+        }
+        if (_isCompleteCurrentEvent)
+        {
+            _sequentialEvents[_currentEvent].Completed += OnComplete;
+            _sequentialEvents[_currentEvent].OnStart(_partyState, ws);
+            _isCompleteCurrentEvent = false;
         }
 
         _sequentialEvents[_currentEvent].Update(gameTime, ws);

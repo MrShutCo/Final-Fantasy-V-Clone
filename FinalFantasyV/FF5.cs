@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Engine.RomReader;
 using Final_Fantasy_V.Models;
 using FinalFantasyV.GameStates;
@@ -26,6 +27,8 @@ public class FF5 : Game
     public static Texture2D MenuTexture;
     public static TilesetInfo MenuTilesetInfo;
 
+    private SimpleFps _fpsCounter;
+
     BattleUnit bartz;
     WorldCharacter worldCharacter;
     Character bartzC;
@@ -41,7 +44,7 @@ public class FF5 : Game
     PartyState partyState;
 
     private Texture2D tex;
-
+    private SpriteFont font;
     
     
     public FF5()
@@ -53,12 +56,15 @@ public class FF5 : Game
         Graphics.PreferredBackBufferWidth = 256 * 3;
         Graphics.PreferredBackBufferHeight = 240 * 3;
         //MapExtractor.ReadMap(1);
-        
+        _fpsCounter = new SimpleFps();
     }
 
     protected override void Initialize()
     {
         // TODO: Add your initialization logic here
+        TargetElapsedTime = TimeSpan.FromSeconds(1d / 60d);
+        IsFixedTimeStep = false;
+        Graphics.ApplyChanges();
         bartzC = new Character(Hero.Butz);
         base.Initialize();
     }
@@ -81,6 +87,7 @@ public class FF5 : Game
         Lenna = Content.Load<Texture2D>("Lenna");
         Galuf = Content.Load<Texture2D>("Galuf");
         Faris = Content.Load<Texture2D>("Faris");
+        font = Content.Load<SpriteFont>("File");
 
         partyState.AddItem(RomData.GetGearByName("[Shld]Leather"));
         partyState.AddItem(RomData.GetGearByName("[Shld]Leather"));
@@ -102,9 +109,11 @@ public class FF5 : Game
     {
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
+        
+        _fpsCounter.Update(gameTime);
 
         InputHandler.GetState();
-        // TODO: Add your update logic here
+        
         stateStack.Update(gameTime, partyState);
         base.Update(gameTime);
     }
@@ -121,9 +130,10 @@ public class FF5 : Game
         
         GraphicsDevice.SetRenderTarget(null);
 
-        // TODO: Add your drawing code here
         _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default);
         _spriteBatch.Draw(target, new Rectangle(0, 0, Graphics.PreferredBackBufferWidth, Graphics.PreferredBackBufferHeight), Color.White);
+        
+        _fpsCounter.DrawFps(_spriteBatch, font, new Vector2(16,16), Color.White);
         
         _spriteBatch.End();
         base.Draw(gameTime);

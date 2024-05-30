@@ -25,6 +25,7 @@ public class EventChangeMap : IGameEvent
 
     public void OnStart(PartyState partyState, WorldState ws)
     {
+        ws.ChangeMap(_mapId,  new Vector2(_x, _y) * 16);
         Completed?.Invoke();
     }
 

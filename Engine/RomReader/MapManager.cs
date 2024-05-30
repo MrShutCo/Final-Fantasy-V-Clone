@@ -31,94 +31,89 @@ namespace Engine.RomReader
 {
     public class MapManager
     {
-
-
-
         #region Attributes
-
-
-
+        
         // Locations descriptors at CE/9C00. 26 bytes per location
-        List<List<byte>> _mapDescriptors   = new List<List<byte>>();
+        private readonly List<List<byte>> _mapDescriptors   = [];
         
         // Tileblocks at CF/0000. Sets of 256 tiles16x16 including graphic id, palette id and properties about the tile.
         // CF/0000 Tile blocks offsets [2 bytes * 1C]
         // CF/0038 Tile blocks [Compressed unheaded type02] [2 bytes * (256 * 4)]
-        List<int> _tileBlockOffsets = new();
-        List<List<byte>> _tileBlocks  = new();
+        private readonly List<int> _tileBlockOffsets = [];
+        private readonly List<List<byte>> _tileBlocks  = [];
         
         // Tilemaps at CB/0000 storing the tile map of one background layer in one location
         // CB/0000 Tile maps offsets [2bytes * 0x0148]
         // CB/0290 Tile maps [Compressed unheaded type02] [1byte * 64 * 64] [Until 0DFDFF]
-        List<long>       _tileMapsOffsets = new List<long>();
-        List<List<byte>> _tileMaps        = new List<List<byte>>();
-        List<long>       _tileMapSizes    = new List<long>();
-        long             _tileMapSumSizes = 0;
-        List<int>        _badTilemaps     = new List<int>();
+        private readonly List<long>       _tileMapsOffsets = [];
+        private readonly List<List<byte>> _tileMaps        = [];
+        private readonly List<long>       _tileMapSizes    = [];
+        private long             _tileMapSumSizes = 0;
+        private readonly List<int>        _badTilemaps     = [];
         
         // Background palettes at C3/BB00
         // 03BB00 palettes [0x2B sets of * 2bytes * 0x080 subpalettes]
-        List<List<Color>> _bgPalettes = new List<List<Color>>();
+        private readonly List<List<Color>> _bgPalettes = [];
 
         // Sprite palettes at DF/FC00
         // DFFC00 palette [0x04 sets of * 2bytes * 0x010 subpalettes]
-        List<List<Color>> _spritePalettes = new List<List<Color>>();
+        private List<List<Color>> _spritePalettes = [];
 
         // Current map tiles (grid of 64 16x16 tiles meaning a list of 128 x 128 tile8x8)
-        public List<List<tile8x8>> TilesBg0 = new List<List<tile8x8>>();
-        public List<List<tile8x8>> TilesBg1 = new List<List<tile8x8>>();
-        public List<List<tile8x8>> TilesBg2 = new List<List<tile8x8>>();
+        public List<List<tile8x8>> TilesBg0 = [];
+        public List<List<tile8x8>> TilesBg1 = [];
+        public List<List<tile8x8>> TilesBg2 = [];
 
         // Current map tileBlocks (graphic) Images
-        List<Image> _bgTileSet = new List<Image>();
+        private List<Image> _bgTileSet = [];
 
         // Current map tileBlocks tiles16x16
-        public List<tile16x16> Tiles16X16 = new List<tile16x16>();
+        public List<tile16x16> Tiles16X16 = [];
 
         // Current map background (byte) tilemaps
-        public List<byte> Tilemap00 = new List<byte>();
-        public List<byte> Tilemap01 = new List<byte>();
-        public List<byte> Tilemap02 = new List<byte>();
+        public List<byte> Tilemap00 = [];
+        public List<byte> Tilemap01 = [];
+        public List<byte> Tilemap02 = [];
 
         // Current map tile properties
-        public List<byte> TilePropertiesL = new List<byte>();
-        public List<byte> TilePropertiesH = new List<byte>();
-        public List<byte> TileProperties  = new List<byte>();
+        public List<byte> TilePropertiesL = [];
+        public List<byte> TilePropertiesH = [];
+        public List<byte> TileProperties  = [];
 
         public byte CurrentTransparency = 0x00;
 
         // Texts
-        List<int> _speechPtr               = new List<int>();
-        List<List<byte>> _speech           = new List<List<byte>>();
-        List<string> _speechTxt            = new List<string>();
-        public List<string> ItemNames     = new List<string>();
-        public List<string> SpellNames    = new List<string>();
-        List<string> _locationNames        = new List<string>();
-        List<string> _monsterNames         = new List<string>();
-        public List<string> Encounters    = new List<string>();
-        public List<string> MonsterGroups = new List<string>();
+        private List<int> _speechPtr               = [];
+        private List<List<byte>> _speech           = [];
+        private List<string> _speechTxt            = [];
+        public List<string> ItemNames     = [];
+        public List<string> SpellNames    = [];
+        private List<string> _locationNames        = [];
+        private List<string> _monsterNames         = [];
+        public List<string> Encounters    = [];
+        public List<string> MonsterGroups = [];
 
         // World Maps data
-        List<List<byte>> _worldMap2X2Blocks   = new List<List<byte>>();
-        List<List<Color>> _worldMapBgPalettes = new List<List<Color>>();
-        public Image<Rgba32> WorldmapTileset        = new Image<Rgba32>(1, 1);
-        List<List<byte>> _worldmapTileMaps    = new List<List<byte>>();
+        private List<List<byte>> _worldMap2X2Blocks   = [];
+        private readonly List<List<Color>> _worldMapBgPalettes = [];
+        public Image<Rgba32> WorldmapTileset        = new(1, 1);
+        private readonly List<List<byte>> _worldmapTileMaps    = [];
 
         // Sprites
-        List<List<List<Image>>> _sprites = new List<List<List<Image>>>();
+        private List<List<List<Image>>> _sprites = [];
 
         // Monster zones
-        List<byte>             _monsterZones         = new List<byte>();
-        List<List<List<byte>>> _monsterWolrdMapZones = new List<List<List<byte>>>();
+        private List<byte>             _monsterZones         = [];
+        private List<List<List<byte>>> _monsterWolrdMapZones = [];
 
         // Current map Non Playable Characters, Exits, Chests and Events
-        public List<NPC>      Npcs      = new List<NPC>();
-        public List<MapExit>  Exits     = new List<MapExit>();
-        public List<Treasure> Treasures = new List<Treasure>();
-        public List<Event>    Events    = new List<Event>();
+        public List<NPC>      Npcs      = [];
+        public List<MapExit>  Exits     = [];
+        public List<Treasure> Treasures = [];
+        public List<Event>    Events    = [];
 
         // Current map tileBlocks (graphic) Images
-        List<Image> _charSet = new List<Image>();
+        private List<Image> _charSet = [];
         
 
 
@@ -180,10 +175,10 @@ namespace Engine.RomReader
         */
         private void InitEncounters(BinaryReader br, int headerOffset)
         {
-            Encounters           = new List<string>();
-            MonsterGroups        = new List<string>();
-            _monsterZones         = new List<byte>();
-            _monsterWolrdMapZones = new List<List<List<byte>>>();
+            Encounters           = [];
+            MonsterGroups        = [];
+            _monsterZones         = [];
+            _monsterWolrdMapZones = [];
 
             // D0/3000-D0/4FFF	Data	Monster Encounter (512*16)
             //   0-2    [...]
@@ -244,10 +239,10 @@ namespace Engine.RomReader
             br.BaseStream.Position = 0x107A00 + headerOffset;
             for (int k = 0; k < 0x03; k++)
             {
-                List<List<byte>> newWolrdMapZone = new List<List<byte>>();
+                List<List<byte>> newWolrdMapZone = [];
                 for (int j = 0; j < 0x40; j++)
                 {
-                    List<byte> newWolrdMapQuadrant = new List<byte>();
+                    List<byte> newWolrdMapQuadrant = [];
                     for (int i = 0; i < 0x04; i++)
                     {
                         newWolrdMapQuadrant.Add(br.ReadByte());
@@ -282,13 +277,14 @@ namespace Engine.RomReader
         */
         private void InitSprites(BinaryReader br, int headerOffset)
         {
-            _sprites = new List<List<List<Image>>>();
+            _sprites = [];
 
             //DA/0000-DB/3A00
             br.BaseStream.Position = 0x1A0000 + headerOffset;
 
             //HACKME <- Where in the ROM is this information?
-            int[] bytesToRead = {
+            int[] bytesToRead =
+            [
                 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 
                 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 
 
@@ -298,13 +294,14 @@ namespace Engine.RomReader
                 0x0400, 0x0400, 0x0400, 0x0400, 0x0400, 0x0400, 0x0400, 0x0400, 0x0400, 0x0400, 0x0400, 0x0800, 0x0800, 0x0800, 0x0800, 0x0800, 
                 0x0800, 0x0800, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 
 
-                0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0CC0, 0x0400 };
+                0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0200, 0x0CC0, 0x0400
+            ];
 
             for (int i = 0; i < 0x69; i++)
             {
                 List<byte> data4Bpp = br.ReadBytes(bytesToRead[i]).ToList();
                 
-                List<List<Image>> spritesI = new List<List<Image>>();
+                List<List<Image>> spritesI = [];
                 for (int j = 0; j < 0x08; j++)
                 {
                     //Load the sprite id Image.
@@ -335,11 +332,11 @@ namespace Engine.RomReader
         */
         private void LoadTextData(List<string> speechTxt, List<string> itemNames, List<string> spellNames, List<string> locationNames, List<string> monsterNames)
         {
-            this._speechTxt = new List<string>(speechTxt);
-            this.ItemNames = new List<string>(itemNames);
-            this.SpellNames = new List<string>(spellNames);
-            this._locationNames = new List<string>(locationNames);
-            this._monsterNames = new List<string>(monsterNames);
+            this._speechTxt = [..speechTxt];
+            this.ItemNames = [..itemNames];
+            this.SpellNames = [..spellNames];
+            this._locationNames = [..locationNames];
+            this._monsterNames = [..monsterNames];
         }
 
 
@@ -380,7 +377,7 @@ namespace Engine.RomReader
             for (int i = 0; i < 0x03; i++)
             {
                 byte[] bytePal = br.ReadBytes(0x0100);
-                List<Color> newPalette = new List<Color>();
+                List<Color> newPalette = [];
 
                 for (int j = 0; j < 0x0100; j += 2)
                 {
@@ -491,7 +488,7 @@ namespace Engine.RomReader
             for (int i = 0; i < 0x2B; i++)
             {
                 byte[] bytePal = br.ReadBytes(0x0100);
-                List<Color> newPalette = new List<Color>();
+                List<Color> newPalette = [];
 
                 for (int j = 0; j < 0x0100; j += 2)
                 {
@@ -511,7 +508,7 @@ namespace Engine.RomReader
 
             // Sprite palettes at DF/FC00
             // DFFC00 palette [0x04 sets of * 2bytes * 0x010 subpalettes]
-            _spritePalettes = new List<List<Color>>();
+            _spritePalettes = [];
 
             for (int k = 0; k < 0x02; k++)
             {
@@ -520,7 +517,7 @@ namespace Engine.RomReader
                 for (int i = 0; i < 0x04; i++)
                 {
                     byte[] bytePal = br.ReadBytes(0x0020);
-                    List<Color> newPalette = new List<Color>();
+                    List<Color> newPalette = [];
 
                     for (int j = 0; j < 0x0020; j += 2)
                     {
@@ -558,7 +555,7 @@ namespace Engine.RomReader
 
             for (int id = 0; id < 5; id++)
             {
-                List<byte> output = new List<byte>();
+                List<byte> output = [];
 
                 for (int i = 0; i < 0x0100; i++)
                 {
@@ -1079,9 +1076,9 @@ namespace Engine.RomReader
         private void ClearCurrentLocation()
         {
             // Clear tilemaps
-            Tilemap00 = new List<byte>();
-            Tilemap01 = new List<byte>();
-            Tilemap02 = new List<byte>();
+            Tilemap00 = [];
+            Tilemap01 = [];
+            Tilemap02 = [];
 
             // Clear tile properties
             TilePropertiesL.Clear();
@@ -1095,11 +1092,11 @@ namespace Engine.RomReader
 
 
             // Clear tiles
-            TilesBg0 = new List<List<tile8x8>>();
-            TilesBg1 = new List<List<tile8x8>>();
-            TilesBg2 = new List<List<tile8x8>>();
+            TilesBg0 = [];
+            TilesBg1 = [];
+            TilesBg2 = [];
 
-            List<tile8x8> auxList = new List<tile8x8>();
+            List<tile8x8> auxList = [];
             for (int i = 0; i < 0x80; i++)
                 auxList.Add(new tile8x8(0, 0));
 
@@ -1111,10 +1108,10 @@ namespace Engine.RomReader
             }
 
             // Clear npcs, exits, chests and events
-            Npcs      = new List<NPC>();
-            Exits     = new List<MapExit>();
-            Treasures = new List<Treasure>();
-            Events    = new List<Event>();
+            Npcs      = [];
+            Exits     = [];
+            Treasures = [];
+            Events    = [];
         }
 
 
@@ -1143,7 +1140,7 @@ namespace Engine.RomReader
             // 0A 1116 used in $C0/59D7 (DC2D84,((00:1116..7 & 03F0)/4) + DC/2E24)                         Third  [4bpp 8x8] Graphics load
             // 0B 1117 used in $C0/5A45 (DC0000,((00:1117 & #$FC) / 2) + DC/0024)                                 [2bpp 8x8] Graphics load
 
-            _bgTileSet = new List<Image>();
+            _bgTileSet = [];
             br.BaseStream.Position = 0x1C2D84 + headerOffset + ((mapDescriptors[0x09] & 0x3F) << 2);
             offset = br.ReadByte() + (br.ReadByte() * 0x0100) + (br.ReadByte() * 0x010000) + 0x1C2E24 + headerOffset;
             br.BaseStream.Position = offset;
@@ -1187,9 +1184,9 @@ namespace Engine.RomReader
             if (id == 1) mapId = 1;
             if (id > 2) mapId = 2;
 
-            List<byte> shifts = new List<byte>();
-            List<byte> romTileset = new List<byte>();
-            List<byte> tileset = new List<byte>();
+            List<byte> shifts = [];
+            List<byte> romTileset = [];
+            List<byte> tileset = [];
 
             //HACKME, this should be preloaded
             br.BaseStream.Position = 0x0FF9C0 + (mapId * 0x0100) + headerOffset;
@@ -1466,7 +1463,7 @@ namespace Engine.RomReader
             // 16 1122 Used in $C0/58DB (Sent 0x100 bytes C3BB00,([17] * 0x0100 [16]) (i.e. C3:C400) -> to 00:0C00 [Palette])
             List<Color> palette = _bgPalettes[mapDescriptors[0x16]];
 
-            Tiles16X16 = new List<tile16x16>();
+            Tiles16X16 = [];
             for (int i = 0; i < 0x0100; i++)
             {
                 Tiles16X16.Add(new tile16x16(_tileBlocks[id][(i * 2) + 0x0000], _tileBlocks[id][(i * 2) + 0x0001],
@@ -1497,14 +1494,14 @@ namespace Engine.RomReader
             if (id > 2) mapId = 2;
 
             List<Color> palette = _worldMapBgPalettes[mapId];
-            List<byte> tileBlocks = new List<byte>();
+            List<byte> tileBlocks = [];
 
             //HACKME
             // Estos tileblocks deberían estar precargados. Hace un tileBlocksWorldMap y un inicializador
             br.BaseStream.Position = 0x0FF0C0 + (mapId * 0x300) + headerOffset;
             tileBlocks = br.ReadBytes(0x0300).ToList();
 
-            Tiles16X16 = new List<tile16x16>();
+            Tiles16X16 = [];
             for (int i = 0; i < 0x00C0; i++)
             {
                 Tiles16X16.Add(new tile16x16(tileBlocks[i + 0x0000], 0,
@@ -1624,7 +1621,7 @@ namespace Engine.RomReader
         */
         private static List<Image> ToTileMap(Image input)
         {
-            List<Image> output = new List<Image>();
+            List<Image> output = [];
 
             int maxY = (input.Height / 8);
 
@@ -1658,8 +1655,8 @@ namespace Engine.RomReader
         */
         private static List<Image> ToSpriteMap(Image input, bool flip=true, bool px16X16=false)
         {
-            List<Image> output = new List<Image>();
-            List<Image> invertOutput = new List<Image>();
+            List<Image> output = [];
+            List<Image> invertOutput = [];
 
             int maxY = (px16X16) ? (input.Height / 16) : (input.Height / 8);
             int maxX = (px16X16) ? 8 : 4;
@@ -1711,7 +1708,7 @@ namespace Engine.RomReader
         */
         private List<byte> GetWorldMapTilemap(int id, int quadrant)
         {
-            List<byte> output = new List<byte>();
+            List<byte> output = [];
             int horizontalOffset = (quadrant & 0x03) * 0x40;
             int verticalOffset = ((quadrant & 0x0C) >> 2) * 0x40;
 
@@ -1750,16 +1747,17 @@ namespace Engine.RomReader
         * 
         * @return: True if the map was deciphered successfully.
         */
-        public bool MapDecypher(GraphicsDevice gd, BinaryReader br, int headerOffset, int id, int quadrant,
+        public bool MapDecypher(GraphicsDevice gd, BinaryReader br, int headerOffset, int id,
             out BackgroundLayers map,
             out Wall[,] walls)
         {
-            //mapBg00U = mapBg00D = mapBg01U = mapBg01D = mapBg02U = mapBg02D = new Texture2D(gd, 1096, 1096);
             walls = new Wall[64,64];
             bool output = true;
 
-            // TODO: implement this fix for worldmap
-            if (id < 5) return WorldMapDecypher(gd, br, headerOffset, id, quadrant, out map, out walls);
+            if (id < 5)
+            {
+                return WorldMapDecypher(gd, br, headerOffset, id, out map, out walls);
+            }
             
 
             Stopwatch sw = new Stopwatch();
@@ -1801,7 +1799,7 @@ namespace Engine.RomReader
                 CalculateCurrentBackgrounds(br, headerOffset, mapDescriptors);
                 //sw.Stop(); performanceMessage += "Initialize tables:\r\n" + sw.ElapsedMilliseconds + "ms\r\n\r\n";sw.Reset(); //DEBUG
 
-                List<TileTexture> tiles16x16XNA = new();
+                List<TileTexture> tiles16x16XNA = [];
                 
                 foreach (var tile in Tiles16X16)
                 {
@@ -1811,7 +1809,7 @@ namespace Engine.RomReader
                 // Draw backgrounds
                 //sw.Start(); //DEBUG
 
-                map = new BackgroundLayers(tiles16x16XNA, Tilemap00, Tilemap01, Tilemap02);
+                map = new BackgroundLayers(tiles16x16XNA, Tilemap00, Tilemap01, Tilemap02, false);
                 /*mapBg00U = new BackgroundLayer(Tilemap00, Tiles16X16, false, false);
                 mapBg00D = new BackgroundLayer(Tilemap00, Tiles16X16, true, false);
                 mapBg01U = new BackgroundLayer(Tilemap01, Tiles16X16, false, false);
@@ -1888,7 +1886,7 @@ namespace Engine.RomReader
         * 
         * @return: True if the map was deciphered successfully.
         */
-        public bool WorldMapDecypher(GraphicsDevice gd, BinaryReader br, int headerOffset, int id, int quadrant,
+        public bool WorldMapDecypher(GraphicsDevice gd, BinaryReader br, int headerOffset, int id,
             out BackgroundLayers bl, out Wall[,] walls)
         {
             walls = new Wall[1,1];
@@ -1906,8 +1904,17 @@ namespace Engine.RomReader
                 // Load the current world map tileset
                 _bgTileSet = ToTileMap(LoadWorldMapTileset(br, headerOffset, id));
 
-                // Set the current tilemaps
-                Tilemap00 = GetWorldMapTilemap(id, quadrant);
+                byte[] newMap = new byte[256*256];
+                for (int x = 0; x < 4; x++)
+                {
+                    for (int y = 0; y < 4; y++)
+                    {
+                        var quadxy = GetWorldMapTilemap(id, x + y * 4);
+                        CopyQuadrantToGrid(quadxy, newMap, y*64, x*64, 64, 256);
+                    }
+                }
+                
+                Tilemap00 = newMap.ToList();
 
                 // Load the current tile properties
                 LoadCurrentWorldMapTileProperties(br, headerOffset, id);
@@ -1919,14 +1926,14 @@ namespace Engine.RomReader
                 CalculateCurrentBackgrounds(br, headerOffset, null, true);
 
                 // Draw backgrounds
-                List<TileTexture> tiles16x16XNA = new();
+                List<TileTexture> tiles16x16XNA = [];
                 
                 foreach (var tile in Tiles16X16)
                 {
                     tiles16x16XNA.Add(new TileTexture(gd, tile));
                 }
 
-                bl = new BackgroundLayers(tiles16x16XNA, Tilemap00, Tilemap01, Tilemap02);
+                bl = new BackgroundLayers(tiles16x16XNA, Tilemap00, Tilemap01, Tilemap02, true);
 
                 // Draw walls
                 //walls = drawWorldMapWalls(tilemap00, tileProperties);
@@ -1941,7 +1948,18 @@ namespace Engine.RomReader
             return output;
         }
 
-
+        private static void CopyQuadrantToGrid(List<byte> quadrant, byte[] grid, int startRow, int startCol, int quadrantSize, int gridSize)
+        {
+            for (int row = 0; row < quadrantSize; row++)
+            {
+                for (int col = 0; col < quadrantSize; col++)
+                {
+                    int gridIndex = (startRow + row) * gridSize + (startCol + col);
+                    int quadrantIndex = row * quadrantSize + col;
+                    grid[gridIndex] = quadrant[quadrantIndex];
+                }
+            }
+        }
 
         #endregion
 
@@ -1996,7 +2014,7 @@ namespace Engine.RomReader
             byte byte01 = TileProperties[tileId * 3 + 1];
             byte byte02 = TileProperties[tileId * 3 + 2];
 
-            string[] enemyFormation = { "00: Grass", "01: Forest", "02: Desert/Swamp", "03: Sea" };
+            string[] enemyFormation = ["00: Grass", "01: Forest", "02: Desert/Swamp", "03: Sea"];
 
             output += tileId.ToString("X2") + " (";
             output += byte00.ToString("X2") + " ";
@@ -2110,7 +2128,7 @@ namespace Engine.RomReader
         */
         public List<byte> GetMapDescriptors(int id)
         {
-            return new List<byte>(_mapDescriptors[id]);
+            return [.._mapDescriptors[id]];
         }
 
 
@@ -2542,8 +2560,13 @@ namespace Engine.RomReader
             return output;
         }
 
-
-
+        public List<List<byte>> StartGameEvent(BinaryReader br, int offset)
+        {
+            var end = 0x084ED4;
+            br.BaseStream.Position = 0x084C80;
+            return Event.ReadEvent(br, offset, end - br.BaseStream.Position);
+        }
+        
         /**
         * mapGetEvents
         * 
@@ -2834,11 +2857,13 @@ namespace Engine.RomReader
         {
             string output = "";
 
-            int[] quadrantMap = new int[]{
+            int[] quadrantMap =
+            [
                 0x00, 0x02, 0x04, 0x06,
                 0x10, 0x12, 0x14, 0x16,
                 0x20, 0x22, 0x24, 0x26,
-                0x30, 0x30, 0x34, 0x36 };
+                0x30, 0x30, 0x34, 0x36
+            ];
 
             int quadrant00 = quadrantMap[quadrant];
             int quadrant01 = quadrant00 + 0x01;
@@ -2892,1217 +2917,6 @@ namespace Engine.RomReader
 
 
     #region AuxiliarClasses
-
-
-    
-    public class tile8x8 : ICloneable
-    {
-        /** 
-        
-        2 bytes
-        ------------------------------------------ ------------------------------------------
-        I7 I6 I5 I4 I3 I2 I1 I0 | V0 H0 R0 P2 P1 P0 I9 I8
-
-        I = Background tile id.
-        V = Vertical flip.
-        H = Horizontal flip.
-        R = Tile priority.
-        P = Tile palette.
-
-        */
-
-        int id = 0;
-        bool hFlip = false;
-        bool vFlip = false;
-        bool priority = false;
-        int palette = 0;
-        byte byte00 = 0;
-        byte byte01 = 0;
-
-
-
-        /**
-        * Constructor
-        * 
-        * @param byte00: Properties byte 0
-        * @param byte01: Properties byte 1
-        */
-        public tile8x8(byte byte00, byte byte01)
-        {
-            this.byte00 = byte00;
-            this.byte01 = byte01;
-            id = byte00 + ((byte01 & 0x03) * 0x0100);
-            vFlip = (byte01 & 0x80) != 0;
-            hFlip = (byte01 & 0x40) != 0;
-            priority = (byte01 & 0x20) != 0;
-            palette = (byte01 & 0x1C) >> 2;
-        }
-
-
-
-        /**
-        * ToString
-        * 
-        * @return this 8x8 tile data properly formatted
-        */
-        public string ToString()
-        {
-            string output = "";
-
-            output += "id      = " + id.ToString("X4") + "\r\n";
-            output += "hFlip   = " + (hFlip ? "true" : "false") + "\r\n";
-            output += "vFlip   = " + (vFlip ? "true" : "false") + "\r\n";
-            output += "prior   = " + (priority ? "true" : "false") + "\r\n";
-            output += "palette = " + palette.ToString("X2") + "\r\n";
-
-            return output;
-        }
-
-        /**
-        * calcGraph
-        * 
-        * Returns the picture representing this 8x8 tile.
-        * 
-        * @param tileset: Current tileset.
-        * @param inputPalette: Current background palette.
-        * @param background02: The layer is a 'background02' (4 color per tile instead of 16 color per tile).
-        * 
-        * @return this 8x8 tile Image
-        */
-        public Image calcGraph(List<Image> tileset, List<Color> inputPalette, bool background02 = false)
-        {
-            List<Color> palette = inputPalette;
-            for (int i = 0; i < 0x080; i += 0x10)
-            {
-                palette[i] = Color.FromRgba(0xFF, 0x00, 0x00, 0x00);
-            }
-
-            Image<Rgba32> auxiliar = new Image<Rgba32>(8, 8);
-
-            int index = 0;
-
-            Dictionary<Rgba32, Rgba32> colorMap = new();
-
-            if (!background02)
-            {
-                foreach (Color item in Palettes.palette4b)
-                {
-                    colorMap[item] = palette[(this.palette * 16) + index];
-                    index++;
-                }
-            }
-            else
-            {
-                foreach (Color item in Palettes.palette2b)
-                {
-                    colorMap[item] = palette[this.palette * 4 + index];
-                    index++;
-                }
-
-                colorMap[Palettes.palette2b[0]] = Color.FromRgba(0xFF, 0x00, 0x00, 0x00);
-            }
-
-            //ImageAttributes imageAttributes = new ImageAttributes();
-            //imageAttributes.SetRemapTable(colorMap, ColorAdjustType.Image);
-
-            if (id < tileset.Count)
-            {
-                //Graphics g = Graphics.FromImage(auxiliar);
-                auxiliar.Mutate(g =>
-                {
-                    g.DrawImage(tileset[id], new Rectangle(0, 0, 8, 8), 1);
-                    for (int x = 0; x < auxiliar.Width; x++)
-                    {
-                        for (int y = 0; y < auxiliar.Width; y++)
-                        {
-                            Rgba32 val;
-                            if (colorMap.TryGetValue(auxiliar[x, y], out val))
-                                auxiliar[x, y] = colorMap[auxiliar[x, y]];
-
-                        }
-                    }
-                });
-            }
-
-            auxiliar.Mutate(g =>
-            {
-                if (hFlip & !vFlip)
-                {
-                    g.RotateFlip(RotateMode.None, FlipMode.Horizontal);
-                }
-                else if (!hFlip & vFlip)
-                {
-                    g.RotateFlip(RotateMode.None, FlipMode.Vertical);
-                }
-                else if (hFlip & vFlip)
-                {
-                    g.RotateFlip(RotateMode.None, FlipMode.Vertical);
-                    g.RotateFlip(RotateMode.None, FlipMode.Horizontal);
-                }
-            });
-            // Copy here, taking flips into account
-            
-
-            return auxiliar;
-        }
-
-
-
-        /**
-        * draw
-        * 
-        * Draw the tile in a given Image.
-        *
-        * @param x: X coordinate of the 16x16 tile to draw.
-        * @param y: Y coordinate of the 16x16 tile to draw.
-        * @param output: The Image picture representing the tile to draw on.
-        * @param tileset: Current tileset.
-        * @param inputPalette: Current background palette.
-        * @param background02: Is the layer to draw a 'background02'? (4 color per tile instead of 16 color per tile).
-        */
-        public void draw(int x, int y, Image output, List<Image> tileset, List<Color> inputPalette, bool background02 = false)
-        {
-            Image tileImage = calcGraph(tileset, inputPalette, background02);
-
-            output.Mutate(g =>
-            {
-                g.DrawImage(tileImage, new Point(x,y), 1);
-            });
-        }
-
-
-
-        // Getter
-        public bool getPriority() { return priority; }
-
-
-
-        // Overrides
-        public object Clone()
-        {
-            return new tile8x8(byte00, byte01);
-        }
-    }
-
-
-
-    public class tile16x16
-    {
-        public tile8x8 tile00;
-        public tile8x8 tile01;
-        public tile8x8 tile02;
-        public tile8x8 tile03;
-
-        public tile8x8 tile00Bg02;
-        public tile8x8 tile01Bg02;
-        public tile8x8 tile02Bg02;
-        public tile8x8 tile03Bg02;
-
-        public Image<Rgba32> ImageP0;
-        public Image<Rgba32> ImageP1;
-
-        public Image<Rgba32> ImageP0Bg02;
-        public Image<Rgba32> ImageP1Bg02;
-
-
-
-        /**
-        * Constructor
-        * 
-        * @param byte00: byte 0 of the 8x8 tile 0 (upper left)
-        * @param byte01: byte 1 of the 8x8 tile 0 (upper left)
-        * @param byte10: byte 0 of the 8x8 tile 1 (upper right)
-        * @param byte11: byte 1 of the 8x8 tile 1 (upper right)
-        * @param byte20: byte 0 of the 8x8 tile 2 (bottom left)
-        * @param byte21: byte 1 of the 8x8 tile 2 (bottom left)
-        * @param byte30: byte 0 of the 8x8 tile 3 (bottom right)
-        * @param byte41: byte 1 of the 8x8 tile 3 (bottom right)
-        * @param tileset: Collection of 8x8 tile Images
-        * @param inputPalette: Collection background palettes
-        */
-        public tile16x16(byte byte00, byte byte01, byte byte10, byte byte11,
-                         byte byte20, byte byte21, byte byte30, byte byte31,
-                         List<Image> tileset, List<Color> inputPalette)
-        {
-            tile00 = new tile8x8(byte00, byte01);
-            tile01 = new tile8x8(byte10, byte11);
-            tile02 = new tile8x8(byte20, byte21);
-            tile03 = new tile8x8(byte30, byte31);
-
-            tile00Bg02 = new tile8x8(byte00, (byte)(byte01 | 0x03));
-            tile01Bg02 = new tile8x8(byte10, (byte)(byte11 | 0x03));
-            tile02Bg02 = new tile8x8(byte20, (byte)(byte21 | 0x03));
-            tile03Bg02 = new tile8x8(byte30, (byte)(byte31 | 0x03));
-
-            ImageP0 = new Image<Rgba32>(16, 16);
-            ImageP1 = new Image<Rgba32>(16, 16);
-
-            ImageP0Bg02 = new Image<Rgba32>(16, 16);
-            ImageP1Bg02 = new Image<Rgba32>(16, 16);
-
-            if (!tile00.getPriority())
-            {
-                tile00.draw(0, 0, ImageP0, tileset, inputPalette);
-                tile00Bg02.draw(0, 0, ImageP0Bg02, tileset, inputPalette, true);
-            }
-            else
-            {
-                tile00.draw(0, 0, ImageP1, tileset, inputPalette);
-                tile00Bg02.draw(0, 0, ImageP1Bg02, tileset, inputPalette, true);
-            }
-
-            if (!tile01.getPriority())
-            {
-                tile01.draw(8, 0, ImageP0, tileset, inputPalette);
-                tile01Bg02.draw(8, 0, ImageP0Bg02, tileset, inputPalette, true);
-            }
-            else
-            {
-                tile01.draw(8, 0, ImageP1, tileset, inputPalette);
-                tile01Bg02.draw(8, 0, ImageP1Bg02, tileset, inputPalette, true);
-            }
-
-            if (!tile02.getPriority())
-            {
-                tile02.draw(0, 8, ImageP0, tileset, inputPalette);
-                tile02Bg02.draw(0, 8, ImageP0Bg02, tileset, inputPalette, true);
-            }
-            else
-            {
-                tile02.draw(0, 8, ImageP1, tileset, inputPalette);
-                tile02Bg02.draw(0, 8, ImageP1Bg02, tileset, inputPalette, true);
-            }
-
-            if (!tile03.getPriority())
-            {
-                tile03.draw(8, 8, ImageP0, tileset, inputPalette);
-                tile03Bg02.draw(8, 8, ImageP0Bg02, tileset, inputPalette, true);
-            }
-            else
-            {
-                tile03.draw(8, 8, ImageP1, tileset, inputPalette);
-                tile03Bg02.draw(8, 8, ImageP1Bg02, tileset, inputPalette, true);
-            }
-        }
-
-
-
-        /**
-        * draw
-        * 
-        * Draw the tile in a given Image.
-        *
-        * @param x: X coordinate of the 16x16 tile to draw.
-        * @param y: Y coordinate of the 16x16 tile to draw.
-        * @param output: The Image picture representing the tile to draw on.
-        * @param priority: The priority of the layer ('up' is drawn over 'down').
-        * @param background02: Is the layer a 'background02'? (4 color per tile instead of 16 color per tile).
-        */
-        public void Draw(int x, int y, Image<Rgba32> output, bool priority, bool background02)
-        {
-            output.Mutate(g =>
-            {
-                if (background02)
-                    if (priority)
-                        g.DrawImage(ImageP1Bg02, new Point(x,y), 1);
-                    else
-                        g.DrawImage(ImageP0Bg02, new Point(x,y), 1);
-                else
-                    if (priority)
-                    g.DrawImage(ImageP1, new Point(x,y), 1);
-                else
-                    g.DrawImage(ImageP0, new Point(x,y), 1);
-            });
-        }
-
-    }
-
-
-
-    public class Event
-    {
-        public long address;
-        public int actionId;
-        public byte x;
-        public byte y;
-
-        public List<long> addresses = new List<long>();
-        public List<List<byte>> bytes = new List<List<byte>>();
-
-        //string eventstring;
-
-        public List<int> IndicesOfExtendedEvents;
-
-        /**
-        * Event
-        * 
-        * Class constructor.
-        *
-        * @param address: The address in the ROM where the Event is stored.
-        * @param data (4 bytes)
-        *   x: The initial x tile location of the Event.
-        *   y: The initial y tile location of the Event.
-        *   actionId: The action id of the Event.
-        * @param br: The reader to load the data from.
-        * @param headerOffset: The offset due to a header in the ROM.
-        */
-        public Event(long address, byte[] data, BinaryReader br, int headerOffset)
-        {
-            this.address = address;
-            IndicesOfExtendedEvents = [];
-
-            //4 bytes
-            //  2B: Origin Coordinates
-            //  2B: Event id
-            x = data[0];
-            y = data[1];
-            actionId = data[2] + data[3] * 0x0100;
-            //eventstring = "";
-
-            // CE/2400-CE/27FF Event places offset [2 bytes * 512]
-            // CE/2800-CE/365F Event places [4 bytes * 920]  (2B: Coordinates, 2B Event id (in table D8/E080))
-            // D8/E080-D8/E5DF Event data offsets [2 bytes * 687 (0x2AF)]
-            // D8/E5E0-D8/FFFF Event data [x bytes * 687 (0x2AF)] (Links to Extended Event data in table C8/3320)
-            // C8/3320-C8/49DE Extended Event data offsets  [3 bytes * 1940] (Big endian)
-            // C8/49DF-C9/FFFF Extended Event data [x bytes * 1940]
-
-            long position = br.BaseStream.Position;
-
-            //D8/E080
-            br.BaseStream.Position = 0x18E080 + headerOffset + (actionId * 2);
-            long pointerBegin = ((br.ReadByte() * 0x0001 + br.ReadByte() * 0x0100) + headerOffset);
-            long pointerEnd   = ((br.ReadByte() * 0x0001 + br.ReadByte() * 0x0100) + headerOffset);
-            long length = pointerEnd - pointerBegin;
-
-            int[] argumentWidthts = { 0, 1, 3, 3, 3, 1, 1, 1, 1, 2 };
-
-            br.BaseStream.Position = 0x18E080 + headerOffset + pointerBegin;
-            for (int i = 0; i < length ; i++)
-            {
-                List<byte> newbyteList = new List<byte>();
-
-                byte nextInstruction = br.ReadByte();
-                newbyteList.Add(nextInstruction);
-                int width = (nextInstruction > 0xF5) ? argumentWidthts[nextInstruction - 0xF6] : 2;
-
-                //eventstring += "D8/" + ((br.BaseStream.Position - headerOffset) & 0x00FFFF).ToString("X4") + ":\t";
-                //eventstring += nextInstruction.ToString("X2") + " (";
-                addresses.Add(br.BaseStream.Position - headerOffset + 0xC00000);
-                for (int j = 0; j < width; j++) { newbyteList.Add(br.ReadByte()); }
-                bytes.Add(newbyteList);
-
-                if (nextInstruction == 0xFF)
-                {
-                    addExtendedEvent(newbyteList[1] + newbyteList[2] * 0x0100, br, headerOffset);
-                }
-
-                //if (nextInstruction == 0xFF)
-                //{
-                //    byte lobyte = br.ReadByte();
-                //    byte hibyte = br.ReadByte();
-                //    eventstring += lobyte.ToString("X2") + " ";
-                //    eventstring += hibyte.ToString("X2") + ") (extended Event)\r\n";
-                //    eventstring += extendedEvent(lobyte + hibyte * 0x0100, br, headerOffset);
-                //    eventstring += "\r\n";
-                //}
-                //else
-                //{
-                //   for (int j = 0; j < width; j++) { eventstring += br.ReadByte().ToString("X2") + " "; }
-                //   eventstring += ")\r\n";
-                //}
-
-                i = i + width;
-            }
-
-            br.BaseStream.Position = position;
-        }
-
-
-
-        /**
-        * extendedEvent
-        * 
-        * Read an extended event given its eventId.
-        *
-        * @param eventId: The id of the extended event to read from.
-        * @param br: The reader to load the data from.
-        * @param headerOffset: The offset due to a header in the ROM.
-        * 
-        * @return an extended Event data (not) properly formatted
-        */
-        private string extendedEvent(int eventId, BinaryReader br, int headerOffset){
-            string output = "";
-            
-            long position = br.BaseStream.Position;
-
-            // C8/3320-C8/49DE Event data offsets  [3 bytes * 1940] (Big endian)
-            br.BaseStream.Position = 0x083320 + headerOffset + (eventId * 3);
-            long pointerBegin = ((br.ReadByte() * 0x000001 + br.ReadByte() * 0x000100 + br.ReadByte() * 0x010000) + headerOffset) - 0xC00000;
-            long pointerEnd = ((br.ReadByte() * 0x000001 + br.ReadByte() * 0x000100 + br.ReadByte() * 0x010000) + headerOffset) - 0xC00000;
-            long length = pointerEnd - pointerBegin;
-            if (pointerBegin < 0) return "";
-
-            // C8/49DF-C9/FFFF Event data
-            br.BaseStream.Position = pointerBegin + headerOffset;
-            
-            long snesAddress;
-            byte bank;
-            byte func;
-            int offset;
-            byte readenbyte = 0;
-
-            do
-            {
-                snesAddress = ((br.BaseStream.Position - headerOffset) + 0xC00000);
-                bank = Convert.ToByte((snesAddress & 0x00FF0000) >> 16);
-                offset = Convert.ToInt32((snesAddress & 0x0000FFFF) >> 0); // TODO TYLER huh?
-
-                output += "  " + bank.ToString("X2") + "/" + offset.ToString("X4") + ":\t  ";
-                func = br.ReadByte();
-                output += func.ToString("X2") + " (";
-                for (int i = 0; i < getExtendedEventSize(func); i++)
-                {
-                    readenbyte = br.ReadByte();
-                    output += readenbyte.ToString("X2") + " ";
-                }
-                if (func == 0xF3)
-                {
-                    int variableFuncSize = (readenbyte & 0x0F) + 1;
-                    variableFuncSize *= ((readenbyte & 0xF0) >> 4) + 1;
-
-                    output += "[";
-                    for (int i = 0; i < variableFuncSize; i++)
-                    {
-                        readenbyte = br.ReadByte();
-                        output += readenbyte.ToString("X2") + " ";
-                    }
-                    output += "]";
-                }
-
-                output += ")\r\n";
-
-            } while (func != 0xFF);
-
-            br.BaseStream.Position = position;
-
-            return output;
-        }
-
-
-
-        /**
-        * addExtendedEvent
-        * 
-        * Read an extended event given its eventId.
-        *
-        * @param eventId: The id of the extended event to read from.
-        * @param br: The reader to load the data from.
-        * @param headerOffset: The offset due to a header in the ROM.
-        * 
-        * @return an extended Event data (not) properly formatted
-        */
-        private void addExtendedEvent(int eventId, BinaryReader br, int headerOffset)
-        {
-            long position = br.BaseStream.Position;
-
-            // C8/3320-C8/49DE Event data offsets  [3 bytes * 1940] (Big endian)
-            br.BaseStream.Position = 0x083320 + headerOffset + (eventId * 3);
-            long pointerBegin = ((br.ReadByte() * 0x000001 + br.ReadByte() * 0x000100 + br.ReadByte() * 0x010000) + headerOffset) - 0xC00000;
-            long pointerEnd = ((br.ReadByte() * 0x000001 + br.ReadByte() * 0x000100 + br.ReadByte() * 0x010000) + headerOffset) - 0xC00000;
-            long length = pointerEnd - pointerBegin;
-            if (pointerBegin < 0) return;
-
-            // C8/49DF-C9/FFFF Event data
-            br.BaseStream.Position = pointerBegin + headerOffset;
-
-            long snesAddress;
-            byte bank;
-            byte func;
-            int offset;
-            byte readenbyte = 0;
-
-            do
-            {
-                snesAddress = ((br.BaseStream.Position - headerOffset) + 0xC00000);
-                bank = Convert.ToByte((snesAddress & 0x00FF0000) >> 16);
-                offset = Convert.ToInt32((snesAddress & 0x0000FFFF) >> 0);
-                
-                //output += "  " + bank.ToString("X2") + "/" + offset.ToString("X4") + ":\t  ";
-                addresses.Add(snesAddress);
-                List<byte> newbyteList = new List<byte>();
-
-                func = br.ReadByte();
-                newbyteList.Add(func);
-                for (int i = 0; i < getExtendedEventSize(func); i++)
-                {
-                    readenbyte = br.ReadByte();
-                    newbyteList.Add(readenbyte);
-                }
-                if (func == 0xF3)
-                {
-                    int variableFuncSize = (readenbyte & 0x0F) + 1;
-                    variableFuncSize *= ((readenbyte & 0xF0) >> 4) + 1;
-
-                    for (int i = 0; i < variableFuncSize; i++)
-                    {
-                        newbyteList.Add(br.ReadByte());
-                    }
-                }
-
-                bytes.Add(newbyteList);
-
-            } while (func != 0xFF);
-
-            br.BaseStream.Position = position;
-        }
-
-
-
-        /**
-        * getExtendedEventSize
-        * 
-        * Auxiliar function. Return the size of a given Event function.
-        *
-        * @param func: The function to get the size.
-        * 
-        * @return the size of the Event function
-        */
-        private int getExtendedEventSize(byte func)
-        {
-            int output = 0;
-            int[] sizes = { 1,1,1,1,1,1,1,1,1,1,2,2,2,1,1,1,
-                            1,1,1,1,1,0,1,1,2,2,2,2,0,2,2,2,
-                            2,3,4,3,3,3,3,3,0,0,0,0,0,0,0,0,
-                            0,5,0,5,0,0,0,0,0,0,0,0,0,0,0,0,
-                            0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0};
-
-            if (func < 0x80)
-            {
-                output = 0;
-            }
-            else if (func < 0xB0)
-            {
-                output = 1;
-            }
-            else
-            {
-                output = sizes[func - 0xB0];
-            }
-
-            return output;
-        }
-
-
-
-        /**
-        * ToString
-        * 
-        * @return this Event data properly formatted
-        */
-        public string ToString()
-        {
-            string output = "";
-
-            output += "Event Id  : " + actionId.ToString("X4") + "\r\n";
-            output += "Coordinates: " + x.ToString("X2") + ", " + y.ToString("X2") + "\r\n";
-            //output += "Data length: " + length.ToString("X4") + "\r\n";
-            output += "\r\n";
-            //output += eventstring;
-
-            return output;
-        }
-
-
-
-        /**
-        * injectEvent
-        * 
-        * Inject a edited Event into the ROM.
-        *
-        * @param bw: The writer to store the data into.
-        * @param headerOffset: The offset due to a header in the ROM.
-        * @param address: The exact SNES address of the event to inject in.
-        * @param x: The new 'x' parameter of the Event.
-        * @param y: The new 'y' parameter of the Event.
-        * @param actionId: The new 'actionId' parameter of the Event.
-        */
-        public static void injectEvent(BinaryWriter bw, int headerOffset, long address, byte x, byte y, int actionId)
-        {
-            //4 bytes
-            //  2B: Origin Coordinates
-            //  2B: Event id
-            bw.BaseStream.Position = address + headerOffset - 0xC00000;
-            bw.Write(x);
-            bw.Write(y);
-            bw.Write((byte)((actionId & 0x00FF) >> 0));
-            bw.Write((byte)((actionId & 0xFF00) >> 8));
-        }
-    }
-
-
-
-    public class NPC
-    {
-        // NPC offsets at CE/59C0-CE/5DC1 [2bytes * 512 + 2bytes eof]
-        // NPC properties at CE/5DC2-CE/9BFF [7bytes each]
-        // NPC actions offsets at CE/0000-CE/073F
-        // NPC actions at CE/0740-CE/2293 (I don't understand them yet) HACKME
-
-        public long address;
-        public int  actionId;
-        public byte graphicId;
-        public byte x;
-        public byte y;
-        public byte walkingParam;
-        public byte palette;
-        public byte direction;
-        public byte unknown;
-        public List<(string, List<ushort>)> dialogues;
-
-
-        private static readonly HashSet<int> VisibleActionIds =
-        [
-            8, 9, 25, 26, 32, 40, 41, 42, 50, 51, 74, 86, 87, 88, 90, 95, 96, 97, 98, 99,
-            100, 101, 102, 103, 104, 107, 112, 113, 114, 115, 116, 117, 118, 119, 120, 123,
-            124, 125, 126, /*128,*/ 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
-            142, 143, 144, 145, 146, 147, 148, 149, 150, 152, 154, 157, 159, 160, 161, 163,
-            165, 166, 168, 169, 170, 172, 174, 175, 176, 177, 178, 181, 192, 193, 194, 195,
-            196, 197, 198, 199, 200, 201, 208, 209, 210, 211, 212, 213, 223, 224, 225, 226,
-            227, 228, 229, 230, 231, 232, 233, 234, 242, 243, 244, 248, 249, 250, 251, 254,
-            255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 270, 272, 273, 274,
-            275, 279, 280, 281, 282, 288, 289, 292, 293, 294, 295, 296, 297, 298, 299, 300,
-            301, 302, 303, 306, 307, 308, 309, 310, 311, 312, 313, 314, 318, 337, 339, 342,
-            343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358,
-            359, 360, 361, 362, 363, 364, 365, 366, 367, 368, 369, 384, 385, 448, 562, 563,
-            564, 565, 566, 567, 568, 569, 570, 571, 572, 573, 579, 639, 640, 641, 642, 643,
-            644, 645, 646, 647, 648, 649, 650, 651, 652, 666, 667, 669, 672, 674, 675, 676,
-            677, 678, 679, 680, 681, 682, 686, 687, 688, 689, 690, 691, 692, 693, 694, 695,
-            696, 704, 714, 752, 753, 754, 757, 758, 759, 760, 761, 768, 769, 770, 771, 774,
-            775, 864, 865, 866, 867, 868, 869, 870, 871, 872, 873, 874, 875, 876, 880, 889,
-            917, 918, 919
-        ];
-        
-        /**
-        * NPC
-        * 
-        * Class constructor.
-        *
-        * @param address: The address in the ROM where the NPC is stored.
-        * @param data
-        *   actionId: The action id of the NPC.
-        *   graphicId: The graphic id of the NPC.
-        *   x: The initial x tile location of the NPC.
-        *   y: The initial y tile location of the NPC.
-        *   palette: The palette id of the NPC.
-        * @param br: The reader to load the data from.
-        * @param headerOffset: The offset due to a header in the ROM.
-        * @param speechTxt: The list of all the 2160 script texts of the game.
-        */
-        public NPC(long address, byte[] data, BinaryReader br, int headerOffset, List<string> speechTxt)
-        {
-            //bytes 0-1 ActionID
-            //byte    2 Graphic ID
-            //byte    3 X
-            //byte    4 Y
-            //byte    5 Walking parameter
-            //byte    6 Palette (mask with 0x07)
-            //byte    6 Direction (mask with 0xE0)
-
-            dialogues = new List<(string, List<ushort>)>();
-            this.address      = address;
-            this.actionId     = (data[0] + data[1] * 0x0100) & 0x3FFF;
-            this.graphicId    = data[2];
-            this.x            = data[3];
-            this.y            = data[4];
-            this.walkingParam = data[5];
-            this.palette      = (byte)((data[6] & 0x03) >> 0x00);
-            this.direction    = (byte)((data[6] & 0xE0) >> 0x05);
-            this.unknown      = (byte)((data[6] & 0x1C));
-
-            string actions;
-            List<int> speechId = getSpeechId(br, headerOffset, actionId, out actions);
-            //dialogue += "Actions:\r\n------------------------------------------\r\n";
-            //dialogue += actions + "\r\n\r\n";
-
-            if (speechId.Count > 0)
-            {
-                foreach(int item in speechId){
-                    /*dialogue += "Dialogue id: ";
-                    dialogue += item.ToString("X4") + "\r\n------------------------------------------\r\n";
-                    if ((item & 0x07FF) <= speechTxt.Count)
-                        dialogue += speechTxt[item & 0x07FF];
-                    else
-                        dialogue += "<Not a dialogue>";
-                    dialogue += "\r\n\r\n\r\n";*/
-                    if ((item & 0x07FF) <= speechTxt.Count)
-                    {
-                        dialogues.Add((speechTxt[item & 0x07FF], new List<ushort>()));
-                    }
-                }
-            }
-            else
-            {
-                //dialogue += "<Action>\r\n";
-            }
-        }
-
-        public bool IsVisibleOnStartup()
-        {
-            bool contains =  VisibleActionIds.Contains(actionId);
-            return contains;
-        }
-
-        /**
-        * getSpeechId
-        * 
-        * Aux function. Return the speech id given a NPC action.
-        *
-        * @param br: The reader to load the data from.
-        * @param headerOffset: The offset due to a header in the ROM.
-        * @param actionId: The action id of the NPC.
-        *
-        * @return the id of the speech.
-        */
-        private List<int> getSpeechId(BinaryReader br, int headerOffset, int actionId, out string completeAction)
-        {
-            // This works as the C0/2F97 routine in the SNES ROM
-            // (I don't fully understand it yet) // HACKME
-
-            List<int> output = new List<int>();
-            completeAction = "";
-            //$C0/2F97
-
-            //(A 8 bit)
-            //$23 = CE0000[$147F * 2]
-            //while (true){
-            //    A = CE0000[$23]
-            //    if(A != #$F0) break;
-            //    $23 += C0316B[A - #$F0]
-            //}
-            //x++
-            //speechId = CE0000[x]
-
-            // C0/316B
-            // 00 00 00 00  00 04 01 02
-            // 04 05 04 02  02 02 02 03 
-            br.BaseStream.Position = 0x00316B + headerOffset;
-            byte[] actionSizes = br.ReadBytes(0x10);
-
-            br.BaseStream.Position = 0x0E0000 + headerOffset + actionId * 2;
-
-            int accumulator;
-            int var23 = br.ReadByte() + br.ReadByte() * 0x0100;
-            int var26 = br.ReadByte() + br.ReadByte() * 0x0100;
-            br.BaseStream.Position = 0x0E0000 + headerOffset + var23;
-
-            while (true)
-            {
-                accumulator = br.ReadByte();
-                completeAction += "CE/" + (var23 - headerOffset).ToString("X4") + ":\t";
-                completeAction += accumulator.ToString("X2") + " (";
-                if (accumulator == 0xF0) break;
-                var23 += actionSizes[accumulator - 0xF0];
-                foreach (byte item in br.ReadBytes(actionSizes[accumulator - 0xF0] - 1))
-                {
-                    completeAction += item.ToString("X2") + " ";
-                }
-                completeAction += ")\r\n";
-            }
-            var23++;
-            completeAction += ")\r\n\r\n";
-
-            while (var23 < var26)
-            {
-                output.Add(br.ReadByte() + br.ReadByte() * 0x0100);
-                completeAction += "CE/" + (var23 - headerOffset).ToString("X4") + ":\t";
-                completeAction += output.Last().ToString("X4") + "\r\n";
-                var23 += 2;
-            }
-
-            return output;
-        }
-
-
-
-        /**
-        * ToString
-        * 
-        * @return this NPC data properly formatted
-        */
-        public string ToString()
-        {
-            //bytes 0-1 ActionID
-            //byte    2 Graphic ID
-            //byte    3 X
-            //byte    4 Y
-            //byte    5 Walking parameter
-            //byte    6 Palette (mask with 0x07)
-            //byte    6 Direction (mask with 0xE0)
-            string output = "";
-
-            output += "Action Id  : " + actionId.ToString("X4") + "\r\n";
-            output += "Graphic Id : " + graphicId.ToString("X4") + "\r\n";
-            output += "Coordinates: " + x.ToString("X2") + ", " + y.ToString("X2") + "\r\n";
-            output += "Walking    : " + walkingParam.ToString("X2") + "\r\n";
-            output += "Palette    : " + palette.ToString("X1") + "\r\n";
-            output += "Direction  : " + direction.ToString("X1") + "\r\n";
-            output += "\r\n";
-
-            //HACKME Research NPC Actions
-            //output += dialogue.Replace("[EOL]", "\r\n").Replace("[01]", "\r\n") + "\r\n";
-
-            return output;
-        }
-
-
-
-        /**
-        * injectNPC
-        * 
-        * Inject a edited NPC into the ROM.
-        *
-        * @param bw: The writer to store the data into.
-        * @param headerOffset: The offset due to a header in the ROM.
-        * @param address: The exact SNES address of the NPC to inject in.
-        * @param actionId: The new 'actionId' parameter of the NPC.
-        * @param graphicId: The new 'graphicId' parameter of the NPC.
-        * @param x: The new 'x' parameter of the NPC.
-        * @param y: The new 'y' parameter of the NPC.
-        * @param walkingParam: The new 'walkingParam' parameter of the NPC.
-        * @param properties: The new 'properties' parameter of the NPC.
-        */
-        public static void injectNPC(BinaryWriter bw, int headerOffset, long address,
-            int actionId, byte graphicId, byte x, byte y, byte walkingParam, byte properties)
-        {
-            //7 bytes
-            //  0-1 ActionID
-            //  2 Graphic ID
-            //  3 X
-            //  4 Y
-            //  5 Walking parameter
-            //  6 Palette (mask with 0x07)
-            //  6 Unknown (mask with 0x18)
-            //  6 Direction (mask with 0xE0)
-            bw.BaseStream.Position = address + headerOffset - 0xC00000;
-            bw.Write((byte)((actionId & 0x00FF) >> 0));
-            bw.Write((byte)((actionId & 0xFF00) >> 8));
-            bw.Write(graphicId);
-            bw.Write(x);
-            bw.Write(y);
-            bw.Write(walkingParam);
-            bw.Write(properties);
-        }
-    }
-
-
-
-    public class MapExit
-    {
-        public long address = 0;
-        public byte originX = 0;
-        public byte originY = 0;
-        public int mapId = 0;
-        public byte destinationX = 0;
-        public byte destinationY = 0;
-
-        /**
-        * MapExit
-        * 
-        * Class constructor.
-        * 
-        * @param address: The address in the ROM where the Exit is stored.
-        * @param data (4 bytes)
-        *   originX: The x tile location of the exit.
-        *   originY: The y tile location of the exit.
-        *   mapId: The destination map id of the exit.
-        *   destinationX: The x tile location of the exit destination.
-        *   destinationY: The y tile location of the exit destination.
-        */
-        public MapExit(long address, byte[] data)
-        {
-            //6 bytes
-            //  2B: Origin Coordinates
-            //  2B: Destiny Map ID????
-            //  2B: Destiny Coordinates???? (Máximo 3Fx3F en mapas locales)
-
-            this.address = address;
-
-            originX = data[0];
-            originY = data[1];
-            mapId = data[2] + data[3] * 0x0100;
-            destinationX = data[4];
-            destinationY = data[5];
-        }
-
-
-
-        /**
-        * ToString
-        * 
-        * @return this NPC data properly formatted
-        */
-        public string ToString()
-        {
-            string output = "";
-
-            output += "Origin coordinates: " + originX.ToString("X2") + ", " + originY.ToString("X2") + "\r\n";
-            output += "Map Id: " + (0x01FF & mapId).ToString("X4") + "\r\n";
-            output += "Map properties: " + ((0xFE00 & mapId) >> 9).ToString("X2") + "\r\n";
-            output += "Destination coordinates: " + (destinationX & 0x3F).ToString("X2") + ", " + (destinationY & 0x3F).ToString("X2") + "\r\n";
-            output += "Destination properties: " + ((destinationX & 0xC0) >> 6).ToString("X2") + ", " + ((destinationY & 0xC0) >> 6).ToString("X2") + "\r\n";
-
-            return output;
-        }
-
-        public int GetMapId() => (int)(0x01FF & mapId);
-        public byte GetDestX() => (byte)(destinationX & 0x3F);
-        public byte GetDestY() => (byte)(destinationY & 0x3F);
-
-        /**
-        * injectExit
-        * 
-        * Inject a edited Map Exit into the ROM.
-        *
-        * @param bw: The writer to store the data into.
-        * @param headerOffset: The offset due to a header in the ROM.
-        * @param address: The exact SNES address of the Map Exit to inject in.
-        * @param originX: The new 'originX' parameter of the Map Exit.
-        * @param originY: The new 'originY' parameter of the Map Exit.
-        * @param mapId: The new 'mapId' parameter of the Map Exit.
-        * @param destinationX: The new 'destinationX' parameter of the Map Exit.
-        * @param destinationY: The new 'destinationY' parameter of the Map Exit.
-        */
-        public static void injectExit(BinaryWriter bw, int headerOffset, long address, byte originX, byte originY, int mapId, byte destinationX, byte destinationY)
-        {
-            //6 bytes
-            //  2B: Origin Coordinates
-            //  2B: Destiny Map ID????
-            //  2B: Destiny Coordinates???? (Máximo 3Fx3F en mapas locales)
-
-            bw.BaseStream.Position = address + headerOffset - 0xC00000;
-            bw.Write(originX);
-            bw.Write(originY);
-            bw.Write((byte)((mapId & 0x00FF) >> 0));
-            bw.Write((byte)((mapId & 0xFF00) >> 8));
-            bw.Write(destinationX);
-            bw.Write(destinationY);
-        }
-
-
-
-    }
-
-
-
-    public class Treasure
-    {
-        public long address = 0;
-        public byte locationX = 0;
-        public byte locationY = 0;
-        public byte itemId = 0;
-        public byte properties = 0;
-
-
-
-        /**
-        * Treasure
-        * 
-        * Class constructor.
-        * 
-        * @param address: The address in the ROM where the ChestBox is stored.
-        * @param data
-        *   locationX: The x tile location of the chest.
-        *   locationY: The y tile location of the chest.
-        *   itemId: The id of the price.
-        *   properties: The properties of the chest.
-        */
-        public Treasure(long address, byte[] data)
-        {
-            //4 bytes
-            //  2B: Origin Coordinates
-            //  1B: Chest properties
-            //  1B: Content (Spell/item/money) id
-
-            this.address = address;
-            locationX    = data[0];
-            locationY    = data[1];
-            properties   = data[2];
-            itemId       = data[3];
-        }
-
-
-
-        /**
-        * ToString
-        * 
-        * @return this ChestBox data properly formatted
-        */
-        public string ToString()
-        {
-            string output = "";
-
-            output += "Origin coordinates: " + locationX.ToString("X2") + ", " + locationY.ToString("X2") + "\r\n";
-            output += "Item id: " + itemId.ToString("X2") + "\r\n";
-            output += "chest properties: " + properties.ToString("X2") + "\r\n";
-
-            return output;
-        }
-
-
-
-        /**
-        * ToString
-        * 
-        * @param itemNames: A list of the current game item names.
-        * @param spellNames: A list of the current game spell names
-        * 
-        * @return this Treasure data properly formatted
-        */
-        public string ToString(List<string> itemNames, List<string> spellNames)
-        {
-            string output = "";
-            string name = "";
-
-            int price_bhvor = (properties & 0xE0) >> 5;
-            int modificator = (properties & 0x1F);
-
-            output += "Origin coordinates: " + locationX.ToString("X2") + ", " + locationY.ToString("X2") + "\r\n";
-
-            switch (price_bhvor)
-            {
-                case 0:
-                    output += "Chest properties: " + properties.ToString("X2") + " (Money)\r\n";
-                    output += "Item id: " + itemId.ToString("X2") + " (" + itemId * Math.Pow(10, modificator) + "GP)\r\n";
-                    break;
-                case 1:
-                    output += "Chest properties: " + properties.ToString("X2") + " (Spell)\r\n";
-                    name = (itemId < spellNames.Count) ? spellNames[itemId] : "<Error>";
-                    output += "Item id: " + itemId.ToString("X2") + " (" + name + ")\r\n";
-                    break;
-                case 2:
-                    output += "Chest properties: " + properties.ToString("X2") + " (Item)\r\n";
-                    name = (itemId < itemNames.Count) ? itemNames[itemId] : "<Error>";
-                    output += "Item id: " + itemId.ToString("X2") + " (" + name + ")\r\n";
-                    break;
-                case 3:
-                    output += "Chest properties: " + properties.ToString("X2") + " (????)\r\n";
-                    output += "Item id: " + itemId.ToString("X2") + "\r\n";
-                    break;
-                case 4:
-                    output += "Chest properties: " + properties.ToString("X2") + " (????)\r\n";
-                    output += "Item id: " + itemId.ToString("X2") + "\r\n";
-                    break;
-                case 5:
-                    output += "Chest properties: " + properties.ToString("X2") + " (Item + Enemies)\r\n";
-                    output += "Monster-in-a-box id: " + modificator.ToString("X2") + "\r\n";
-                    name = (itemId < itemNames.Count) ? itemNames[itemId] : "<Error>";
-                    output += "Item id: " + itemId.ToString("X2") + " (" + name + ")\r\n";
-                    break;
-                case 6:
-                    output += "Chest properties: " + properties.ToString("X2") + " (????)\r\n";
-                    output += "Item id: " + itemId.ToString("X2") + "\r\n";
-                    break;
-                case 7:
-                    output += "Chest properties: " + properties.ToString("X2") + " (Spell + Enemies)\r\n";
-                    output += "Monster-in-a-box id: " + modificator.ToString("X2") + "\r\n";
-                    name = (itemId < spellNames.Count) ? spellNames[itemId] : "<Error>";
-                    output += "Item id: " + itemId.ToString("X2") + " (" + name + ")\r\n";
-                    break;
-                default:
-                    output += "Chest properties: " + properties.ToString("X2") + " (ERROR!)\r\n";
-                    output += "Item id: " + itemId.ToString("X2") + "\r\n";
-                    break;
-            }
-
-            return output;
-        }
-
-
-
-        /**
-        * getPrice
-        * 
-        * @param itemNames: A list of the current game item names.
-        * @param spellNames: A list of the current game spell names
-        * 
-        * @return this Treasure price properly formatted
-        */
-        public string getPrice(List<string> itemNames, List<string> spellNames)
-        {
-            string output = "";
-            int price_bhvor = (properties & 0xE0) >> 5;
-            int modificator = (properties & 0x1F);
-
-            switch (price_bhvor)
-            {
-                case 0:
-                    output += itemId * Math.Pow(10, modificator) + " Gil";
-                    break;
-                case 1:
-                    output += (itemId < spellNames.Count) ? spellNames[itemId] : "<Error>";
-                    break;
-                case 2:
-                    output += (itemId < itemNames.Count) ? itemNames[itemId] : "<Error>";
-                    break;
-                case 3:
-                    output += "(????)";
-                    break;
-                case 4:
-                    output += "(????)";
-                    break;
-                case 5:
-                    output += (itemId < itemNames.Count) ? itemNames[itemId] : "<Error>";
-                    output += "\r\nMonster-in-a-box id: " + modificator.ToString("X2");
-                    break;
-                case 6:
-                    output += "(????)";
-                    break;
-                case 7:
-                    output += (itemId < spellNames.Count) ? spellNames[itemId] : "<Error>";
-                    output += "\r\nMonster-in-a-box id: " + modificator.ToString("X2");
-                    break;
-                default:
-                    output += "ERROR!";
-                    break;
-            }
-
-            return output;
-        }
-
-
-
-        /**
-        * injectTreasure
-        * 
-        * Inject a edited Treasure into the ROM.
-        *
-        * @param bw: The writer to store the data into.
-        * @param headerOffset: The offset due to a header in the ROM.
-        * @param address: The exact SNES address of the Treasure to inject in.
-        * @param x: The new 'x' parameter of the Treasure.
-        * @param y: The new 'y' parameter of the Treasure.
-        * @param properties: The new 'properties' parameter of the Treasure.
-        * @param itemId: The new 'itemId' parameter of the Treasure.
-        */
-        public static void injectTreasure(BinaryWriter bw, int headerOffset, long address, byte x, byte y, byte properties, byte itemId)
-        {
-            //4 bytes
-            //  2B: Origin Coordinates
-            //  1B: Chest properties
-            //  1B: Content (Spell/item/money) id
-
-            bw.BaseStream.Position = address + headerOffset - 0xC00000;
-            bw.Write(x);
-            bw.Write(y);
-            bw.Write(properties);
-            bw.Write(itemId);
-        }
-
-
-
-    }
-
-
 
     #endregion
 }

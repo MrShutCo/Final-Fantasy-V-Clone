@@ -31,24 +31,30 @@ public class EventDoAction : IGameEvent
         {
             _action += 16;
         }
+        PrintAction();
+    }
+
+    void PrintAction()
+    {
+        var actor = _objectId == 0 ? "Party" : $"Object {_objectId}"; 
+        var s = $"Do Action ({actor}): ";
+        
+        if (_action == 1) Console.WriteLine(s + "Move Up");
+        if (_action == 2) Console.WriteLine(s + "Move Right");
+        if (_action == 3) Console.WriteLine(s + "Move Down");
+        if (_action == 4) Console.WriteLine(s + "Move Left");
+        if (_action == 9) Console.WriteLine(s + "Show Object");
+        if (_action == 10) Console.WriteLine(s + "Hide Object");
+        if (_action == 32) Console.WriteLine(s + "Face Up");
+        if (_action == 34) Console.WriteLine(s + "Face Right");
+        if (_action == 36) Console.WriteLine(s + "Face Down");
+        if (_action == 38) Console.WriteLine(s + "Face Left");
     }
 
     public void OnStart(PartyState partyState, WorldState ws)
     {
         
-        var actor = _objectId == 0 ? "Party" : $"Object {_objectId}"; 
-        var s = $"Do Action ({actor}): ";
-        
-        if (_action == 0x01) Console.WriteLine(s + "Move Up");
-        if (_action == 0x02) Console.WriteLine(s + "Move Right");
-        if (_action == 0x03) Console.WriteLine(s + "Move Down");
-        if (_action == 0x04) Console.WriteLine(s + "Move Left");
-        if (_action == 0x09) Console.WriteLine(s + "Show Object");
-        if (_action == 0x10) Console.WriteLine(s + "Hide Object");
-        if (_action == 32) Console.WriteLine(s + "Face Up");
-        if (_action == 34) Console.WriteLine(s + "Face Right");
-        if (_action == 36) Console.WriteLine(s + "Face Down");
-        if (_action == 38) Console.WriteLine(s + "Face Left");
+        PrintAction();
         
         var charToAct = ws.WorldCharacter;
         if (!IsParty)

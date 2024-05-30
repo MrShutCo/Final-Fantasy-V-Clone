@@ -33,6 +33,7 @@ public class EventSwitch : IGameEvent
             _flag = data[1];
             _status = false;
         }
+        Console.WriteLine($"Change Event Switch: Event Switch {_flag} = {(_status ? "On" : "Off")}");
     }
     
     

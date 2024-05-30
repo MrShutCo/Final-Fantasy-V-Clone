@@ -135,7 +135,7 @@ public class RomGame
     public RomGame()
     {
 
-        br = new BinaryReader(File.Open("FF5.sfc", FileMode.Open));
+        br = new BinaryReader(File.Open("Final Fantasy V 1.10 (RPGe).sfc", FileMode.Open));
 
         (_, offset) = CheckSNESHeader(br);
 
@@ -156,20 +156,43 @@ public class RomGame
         var bl = new BackgroundLayers();
         var walls = new MapManager.Wall[1,1];
 
-        Map.MapDecypher(gd, br, offset, id, 0, out bl, out walls);
+        Map.MapDecypher(gd, br, offset, id, out bl, out walls);
         return (bl, walls);
 
     }
 
     public void Update(int id)
     {
-        Map.MapGetExits(br, offset, id, 0, null);
-        Map.MapGetEvents(br, offset, id, 0, null);
+        int quadrantsToGoTo = 1;
+        if (id < 5)
+        {
+            quadrantsToGoTo = 16;
+        }
+
+        for (int i = 0; i < quadrantsToGoTo; i++)
+        {
+            Map.MapGetExits(br, offset, id, i, null);
+            Map.MapGetEvents(br, offset, id, i, null);
+        }
+        
         Map.MapGetNpCs(br, offset, id, null);
         
         //Map.MapGetChests(br, offset, id, null);
     }
 
+    public void FindMapOfActionId(int actionId)
+    {
+        Map.Events.Clear();
+        for (int i = 5; i < 511; i++)
+        {
+            Map.MapGetEvents(br, offset, i, 0, null);                    
+        }
+    }
+
+    public List<List<byte>> GetStart()
+    {
+        return Map.StartGameEvent(br, offset);
+    }
   
     public static (bool, int) CheckSNESHeader(BinaryReader br)
     {
