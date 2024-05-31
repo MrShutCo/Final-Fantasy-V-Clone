@@ -11,18 +11,8 @@
 * 
 */
 
-
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Graphics;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.ColorSpaces;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
 using Path = System.IO.Path;
@@ -100,7 +90,7 @@ namespace Engine.RomReader
         private readonly List<List<byte>> _worldmapTileMaps    = [];
 
         // Sprites
-        private List<List<List<Image>>> _sprites = [];
+        private List<List<List<Image<Rgba32>>>> sprites = [];
 
         // Monster zones
         private List<byte>             _monsterZones         = [];
@@ -277,7 +267,7 @@ namespace Engine.RomReader
         */
         private void InitSprites(BinaryReader br, int headerOffset)
         {
-            _sprites = [];
+            sprites = [];
 
             //DA/0000-DB/3A00
             br.BaseStream.Position = 0x1A0000 + headerOffset;
@@ -301,19 +291,19 @@ namespace Engine.RomReader
             {
                 List<byte> data4Bpp = br.ReadBytes(bytesToRead[i]).ToList();
                 
-                List<List<Image>> spritesI = [];
+                List<List<Image<Rgba32>>> spritesI = [];
                 for (int j = 0; j < 0x08; j++)
                 {
                     //Load the sprite id Image.
                     Image bigBmpSet = Transformations.transform4b(data4Bpp, 0, bytesToRead[i], _spritePalettes[j].ToArray());
 
                     //Cut the Image in 16x16 pieces. Mirror the sprites if needed.
-                    List<Image> bmpSet = ToSpriteMap(bigBmpSet, bytesToRead[i] <= 0x0200, i >= 0x67);
+                    List<Image<Rgba32>> bmpSet = ToSpriteMap(bigBmpSet, bytesToRead[i] <= 0x0200, i >= 0x67);
 
                     spritesI.Add(bmpSet);
                 }
 
-                _sprites.Add(spritesI);
+                sprites.Add(spritesI);
             }
         }
 
@@ -1653,10 +1643,10 @@ namespace Engine.RomReader
         * 
         * @return: The list of Images tiles.
         */
-        private static List<Image> ToSpriteMap(Image input, bool flip=true, bool px16X16=false)
+        private static List<Image<Rgba32>> ToSpriteMap(Image input, bool flip=true, bool px16X16=false)
         {
-            List<Image> output = [];
-            List<Image> invertOutput = [];
+            List<Image<Rgba32>> output = [];
+            List<Image<Rgba32>> invertOutput = [];
 
             int maxY = (px16X16) ? (input.Height / 16) : (input.Height / 8);
             int maxX = (px16X16) ? 8 : 4;
@@ -1665,7 +1655,7 @@ namespace Engine.RomReader
             {
                 for (int k = 0; k < maxX; k++)
                 {
-                    Image newImage = input.CloneAs<Rgba32>();
+                    Image<Rgba32> newImage = input.CloneAs<Rgba32>();
 
                     newImage.Mutate(g =>
                     {
@@ -1682,7 +1672,7 @@ namespace Engine.RomReader
 
                     if (flip)
                     {
-                        Image newInvImage = newImage.CloneAs<Rgba32>();
+                        Image<Rgba32> newInvImage = newImage.CloneAs<Rgba32>();
                         newInvImage.Mutate(m => m.RotateFlip(RotateMode.None, FlipMode.Vertical)); // TODO: tyler confirm
                         //newInvImage.RotateFlip(RotateFlipType.RotateNoneFlipX);
                         invertOutput.Add(newInvImage);
@@ -2154,9 +2144,9 @@ namespace Engine.RomReader
         *
         * @return: The list of Images tiles.
         */
-        public List<NPC> MapGetNpCs(BinaryReader br, int headerOffset, int id, Image mapNpCs)
+        public List<NPC> MapGetNpCs(BinaryReader br, int headerOffset, int id, GraphicsDevice graphics)
         {
-            //mapNPCs = new Image<Rgba32>(64 * 8 * 2, 64 * 8 * 2);
+            var mapNPCs = new Image<Rgba32>(64 * 8 * 2, 64 * 8 * 2);
             string output = "";
 
             br.BaseStream.Position = 0x0E59C0 + headerOffset + id * 2;
@@ -2207,7 +2197,6 @@ namespace Engine.RomReader
 
                 if (npc[2] == 0x68)
                 {
-                    ;
                     y -= 8;
                     palette = 0x02;
                 }
@@ -2220,8 +2209,8 @@ namespace Engine.RomReader
                 if (npc[2] < 0xF0)
                 {
                     //Take the 16x16 piece to display.
-                    //Image bmp = new Image<Rgba32>(sprites[npc[2]][palette][((npc[6] & 0xE0) >> 0x05)]);
-                    //Image bmp = getNPCSprite(npc[2], npc[6]);
+                    //Image<Rgba32> bmp = sprites[npc[2]][palette][((npc[6] & 0xE0) >> 0x05)];
+                    //Image<Rgba32> bmp = getNPCSprite(npc[2], npc[6]);
 
                     //Set transparency
                     //Rectangle dstRect = new Rectangle(x, y, bmp.Width, bmp.Height);
@@ -2230,6 +2219,7 @@ namespace Engine.RomReader
 
                     //Draw image
                     //graphics.DrawImage(bmp, dstRect, 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel, attr);
+                    //newNpc.Texture = ConvertToTex(graphics, bmp);
                 }
                 //}
                 i++;
@@ -2315,7 +2305,7 @@ namespace Engine.RomReader
             if (graphicID < 0x67)
             {
                 // Normal NPC Sprite
-                output = new Image<Rgba32>(sprites[graphicID][palette][direction]);
+                output = sprites[graphicID][palette][direction];
             }
             else if (graphicID == 0x67)
             {
@@ -2323,21 +2313,21 @@ namespace Engine.RomReader
                 output = new Image<Rgba32>(32, 32);
                 using (var g = Graphics.FromImage(output))
                 {
-                    g.DrawImage(sprites[graphicID][0x02][0x00], new Rectangle(0, 0, 16, 16), new Rectangle(0, 0, 16, 16), GraphicsUnit.Pixel);
-                    g.DrawImage(sprites[graphicID][0x02][0x01], new Rectangle(0, 16, 16, 16), new Rectangle(0, 0, 16, 16), GraphicsUnit.Pixel);
+                    g.DrawImage(sprites[graphicID][0x02][0x00], new Rectangle(0, 0, 16, 16), new Rectangle(0, 0, 16, 16));
+                    g.DrawImage(sprites[graphicID][0x02][0x01], new Rectangle(0, 16, 16, 16), new Rectangle(0, 0, 16, 16));
 
-                    Image newInvImage00 = new Image<Rgba32>(sprites[graphicID][0x02][0x00], 16, 16);
-                    Image newInvImage01 = new Image<Rgba32>(sprites[graphicID][0x02][0x01], 16, 16);
-                    newInvImage00.RotateFlip(RotateFlipType.RotateNoneFlipX);
-                    newInvImage01.RotateFlip(RotateFlipType.RotateNoneFlipX);
-                    g.DrawImage(newInvImage00, new Rectangle(16, 0, 16, 16), new Rectangle(0, 0, 16, 16), GraphicsUnit.Pixel);
-                    g.DrawImage(newInvImage01, new Rectangle(16, 16, 16, 16), new Rectangle(0, 0, 16, 16), GraphicsUnit.Pixel);
+                    Image newInvImage00 = sprites[graphicID][0x02][0x00];
+                    Image newInvImage01 = sprites[graphicID][0x02][0x01];
+                    //newInvImage00.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                    //newInvImage01.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                    g.DrawImage(newInvImage00, new Rectangle(16, 0, 16, 16), new Rectangle(0, 0, 16, 16));
+                    g.DrawImage(newInvImage01, new Rectangle(16, 16, 16, 16), new Rectangle(0, 0, 16, 16));
                 }
             }
             else if (graphicID == 0x68)
             {
                 // Hiryuu head
-                output = new Image<Rgba32>(sprites[graphicID][0x02][0x01]);
+                output = sprites[graphicID][0x02][0x01];
             }
 
             return output;
@@ -2562,8 +2552,10 @@ namespace Engine.RomReader
 
         public List<List<byte>> StartGameEvent(BinaryReader br, int offset)
         {
-            var end = 0x084ED4;
-            br.BaseStream.Position = 0x084C80;
+            //var end = 0x084ED4;
+            //br.BaseStream.Position = 0x084C80;
+            br.BaseStream.Position = 0x84A39;
+            var end = 0x84A3E;
             return Event.ReadEvent(br, offset, end - br.BaseStream.Position);
         }
         

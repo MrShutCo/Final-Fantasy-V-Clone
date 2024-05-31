@@ -41,7 +41,14 @@ public class NewEventManager
             var byteGrouping = bytes[i];
             var action = byteGrouping[0];
 
-            if (action == 0xFB ) // Continue if flag == off and flag > 0xFF
+            var possibleLoop = ProcessLoops(rom, bytes, byteGrouping, i);
+            if (possibleLoop.Item1 != null)
+            {
+                gameEvents.Enqueue(possibleLoop.Item1);
+                i += possibleLoop.Item2;
+            }
+            
+            else if (action == 0xFB ) // Continue if flag == off and flag > 0xFF
             {
                 Console.WriteLine($"If Event Switch {byteGrouping[1] + 256} == Off");
                 if (EventFlags[byteGrouping[1] + 256]) 
@@ -72,33 +79,6 @@ public class NewEventManager
                 Console.WriteLine($"Change Map: {mapIdx} at ({mapX},{mapY})");
                 gameEvents.Enqueue(new EventChangeMap(byteGrouping));
             }
-
-            else if (action == 0xC7)
-            {
-                Console.WriteLine($"Execute the Next {byteGrouping[1]} byte(s) in Parallel");
-                var events = ProcessNextNBytes(rom, bytes, i, byteGrouping[1]);
-                gameEvents.Enqueue(new ParallelEvents(events, byteGrouping[1]));
-                i += events.Count;
-            }
-            
-            else if (action == 0xCF)
-            {
-                var (byteCount, repeatTimes) = (byteGrouping[2], byteGrouping[1]);
-                Console.WriteLine($"Repeat the next {byteCount} byte(s) {repeatTimes} times (Parallel)");
-                var events = ProcessNextNBytes(rom, bytes, i, byteCount);
-                gameEvents.Enqueue(new ParallelRepeatEvent(events, byteCount, repeatTimes));
-                i += events.Count;
-            }
-            
-            else if (action == 0xCE)
-            {
-                var (byteCount, repeatTimes) = (byteGrouping[2], byteGrouping[1]);
-                Console.WriteLine($"Repeat the next {byteCount} byte(s) {repeatTimes} times (Sequential)");
-                var events = ProcessNextNBytes(rom, bytes, i, byteCount);
-                gameEvents.Enqueue(new RepeatSequentialEvents(events, repeatTimes, byteCount));
-                i += events.Count;
-            }
-
             else
             {
                 var singleAction = processSingleAction(rom, byteGrouping);
@@ -116,6 +96,38 @@ public class NewEventManager
         return gameEvents;
     }
 
+    private (IGameEvent, int) ProcessLoops(RomGame rom, List<List<byte>> bytes, List<byte> byteGrouping, int startIndex)
+    {
+        var action = byteGrouping[0];
+        if (action == 0xC7)
+        {
+            Console.WriteLine($"Execute the Next {byteGrouping[1]} byte(s) in Parallel");
+            var events = ProcessNextNBytes(rom, bytes, startIndex, byteGrouping[1]);
+            return (new ParallelEvents(events, byteGrouping[1]), events.Count);
+            //i += events.Count;
+        }
+            
+        if (action == 0xCF)
+        {
+            var (byteCount, repeatTimes) = (byteGrouping[2], byteGrouping[1]);
+            Console.WriteLine($"Repeat the next {byteCount} byte(s) {repeatTimes} times (Parallel)");
+            var events = ProcessNextNBytes(rom, bytes, startIndex, byteCount);
+            return (new ParallelRepeatEvent(events, byteCount, repeatTimes), events.Count);
+            //i += events.Count;
+        }
+            
+        if (action == 0xCE)
+        {
+            var (byteCount, repeatTimes) = (byteGrouping[2], byteGrouping[1]);
+            Console.WriteLine($"Repeat the next {byteCount} byte(s) {repeatTimes} times (Sequential)");
+            var events = ProcessNextNBytes(rom, bytes, startIndex, byteCount);
+            return (new RepeatSequentialEvents(events, repeatTimes, byteCount), events.Count);
+            //i += events.Count;
+        }
+
+        return (null, 0);
+    }
+
     List<IGameEvent> ProcessNextNBytes(RomGame rom, List<List<byte>> bytes, int startIndex, int count)
     {
         var events = new List<IGameEvent>();
@@ -123,8 +135,19 @@ public class NewEventManager
         int offset = 1;
         while (bytesProcessed < count)
         {
-            events.Add(processSingleAction(rom, bytes[startIndex+offset]));
-            bytesProcessed += bytes[startIndex + offset].Count;
+            var possibleLoop = ProcessLoops(rom, bytes,  bytes[startIndex + offset], startIndex + offset);
+            if (possibleLoop.Item1 != null)
+            {
+                events.Add(possibleLoop.Item1);
+                bytesProcessed += bytes[startIndex + offset].Count;
+                offset += possibleLoop.Item2;
+                bytesProcessed += possibleLoop.Item2;
+            }
+            else
+            {
+                events.Add(processSingleAction(rom, bytes[startIndex+offset]));
+                bytesProcessed += bytes[startIndex + offset].Count;
+            }
             offset++;
         }
 
@@ -149,6 +172,7 @@ public class NewEventManager
 
     IGameEvent processSingleAction(RomGame rom, List<byte> byteGrouping)
     {
+        
         var action = byteGrouping[0];
         if (action <= 0x40 || (action >= 0x80 && action <= 0x80+32))
         {
@@ -159,6 +183,8 @@ public class NewEventManager
         {
             return new EventWait(byteGrouping);
         }
+
+        if (action is 0xF3) return new EventCatchAll(byteGrouping);
 
         if (action >= 0xA2 && action <= 0xA6)
         {

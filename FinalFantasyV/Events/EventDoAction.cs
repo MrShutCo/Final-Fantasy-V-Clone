@@ -111,8 +111,10 @@ public class EventDoAction : IGameEvent
     {
         var actor = _objectId == 0 ? "Party" : $"Object {_objectId}"; 
         var s = $"Do Action ({actor}): ";
-        
-        Console.WriteLine(s + actions[_action]);
+
+        var exists = actions.TryGetValue(_action, out string value);
+        if (exists) Console.WriteLine(s + value);
+        else Console.WriteLine(s + $"Action {_action}");
         
     }
 

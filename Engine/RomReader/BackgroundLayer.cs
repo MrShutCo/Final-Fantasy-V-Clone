@@ -65,4 +65,11 @@ public class BackgroundLayers
             }
         }
     }
+
+    public void SetBackgroundTileAt(int layer, int x, int y, byte tile)
+    {
+        if (layer == 0) _tilemap00[y * 64 + x] = tile;
+        if (layer == 1) _tilemap01[y * 64 + x] = tile;
+        if (layer == 2) _tilemap02[y * 64 + x] = tile;
+    }
 }

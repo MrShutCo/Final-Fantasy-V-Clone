@@ -97,6 +97,11 @@ namespace FinalFantasyV.GameStates
             _isEventComplete = true;
         }
 
+        public void SetBackgroundTileAt(int layer, int x, int y, byte tile)
+        {
+            _backgroundLayers.SetBackgroundTileAt(layer, x, y, tile);
+        }
+
         public void SetFlag(int flag, bool status)
         {
             _newEvent.SetFlag(flag, status);

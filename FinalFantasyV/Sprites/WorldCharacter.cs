@@ -227,6 +227,10 @@ namespace FinalFantasyV
 			//	SetCharacter();
 			else if (action == 76)
 				SetCharacter(2,2,false);
+			else if (action == 79)
+				SetCharacter(2,2,false);	
+			else if (action == 80)
+				SetCharacter(2,2, true);
 			else
 				SetCharacter(0, 0, false);
 		}

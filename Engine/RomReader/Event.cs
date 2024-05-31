@@ -9,18 +9,9 @@ public class Event
 
     public List<long> addresses = new();
     public List<List<byte>> bytes = new();
-
-    private static Dictionary<byte, int> _lengths = new()
-    {
-        { 0x71, 0 }
-    };
     
 
-    //string eventstring;
-
-    public List<int> IndicesOfExtendedEvents;
-
-    static int[] ArgumentWidths = { 0, 1, 3, 3, 3, 1, 1, 1, 1, 2 };
+    //static int[] ArgumentWidths = { 0, 1, 3, 3, 3, 1, 1, 1, 1, 2 };
         
     /**
         * Event
@@ -38,7 +29,7 @@ public class Event
     public Event(long address, byte[] data, BinaryReader br, int headerOffset)
     {
         this.address = address;
-        IndicesOfExtendedEvents = [];
+        //IndicesOfExtendedEvents = [];
 
         //4 bytes
         //  2B: Origin Coordinates
@@ -101,10 +92,10 @@ public class Event
             case 0xA6 or 0xA7 or 0xF1 or 0xB7 or 0xB8 or 0xA9 or 0xB6 or 0xC3 or 0xC4 or 0xC5 or 0xAD or 0xAF or 0xB0 or
                  0xAA or 0xAB or 0xC6 or 0xAC or 0xA0 or 0xB1 or 0xC1 or 0xDD or (>= 0xB8 and <= 0xBA) or 0xC5 or 0xC0 or 
                  0xAE or 0xBE or 0xA1 or 0xB4 or 0xB5 or 0xBF or (>= 0xA2 and <= 0xA6) or 0xDC or 0xB2 or 0xB3 or 0xFB or 
-                 0xFC or 0xFD or 0xFE or 0xC7:
+                 0xFC or 0xFD or 0xFE or 0xC7 or 0xF7:
                 return 1;
             case 0xE7 or 0x7B or 0x7D or 0x7F or 0xDA or 0xEB or 0x7E or 0xEA or 0x79 or 0x7A or 0xDB or 
-                 0xE6 or 0x76 or 0x77 or 0x78 or 0x79 or 0xE4 or 0xE5 or 0xE6 or 0xC2 or (>= 0x70 and <= 0x76) :
+                 0xE6 or 0x76 or 0x77 or 0x78 or 0x79 or 0xE4 or 0xE5 or 0xE6 or 0xC2 or (>= 0x70 and <= 0x76):
                 return 0;
             case 0xE0 or 0xE1 or 0xE3 or 0x7C:
                 return 5;

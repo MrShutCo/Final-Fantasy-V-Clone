@@ -1,3 +1,5 @@
+using Microsoft.Xna.Framework.Graphics;
+
 namespace Engine.RomReader;
 
 public class NPC
@@ -17,7 +19,7 @@ public class NPC
     public byte direction;
     public byte unknown;
     public List<(string, List<ushort>)> dialogues;
-
+    public Texture2D Texture;
 
     private static readonly HashSet<int> InvisibleActionId = [128, 0, 87, 119];
     private static readonly HashSet<int> VisibleActionIds = [];
