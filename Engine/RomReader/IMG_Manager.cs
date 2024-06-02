@@ -136,7 +136,7 @@ namespace Engine.RomReader
 
         public static Image<Rgba32> transform3bpp(List<byte> byteMap, int offset, int size, Color[] palette = null)
         {
-            int maxY = (int)((size * 16 * 8) / 6144);
+            int maxY = size * 16 * 8 / 6144;
             Image<Rgba32> newImage = new Image<Rgba32>(16 * 8, maxY);
 
             int i = offset;

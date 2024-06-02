@@ -161,11 +161,16 @@ public class RomGame
 
     }
 
-    public Monster ShowMonster(GraphicsDevice gd, int id)
+    public Monster GetMonster(GraphicsDevice gd, int id)
     {
-        int golem = 78;
-        int bahamut = 153;
         return Map.LoadMonster(gd, br, offset, id);
+    }
+
+    public BattleGroup GetBattleGroup(GraphicsDevice gd, int id)
+    {
+        var b= Map.BattleGroups[id];
+        b.LoadMonsterData(gd, this);
+        return b;
     }
 
     public void Update(int id)

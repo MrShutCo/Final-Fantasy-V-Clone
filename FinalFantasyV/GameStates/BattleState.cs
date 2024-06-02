@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Engine.RomReader;
 using FinalFantasyV.Sprites;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -27,6 +29,9 @@ namespace FinalFantasyV.GameStates
         List<BattleUnit> units;
         SpriteSheet background;
         InputHandler input;
+
+
+        private RomGame _romGame;
         //MenuSelector menuSelector;
 
         EBattleState battleState;
@@ -34,14 +39,16 @@ namespace FinalFantasyV.GameStates
         public event BattleCallback Ended;
 
         SpriteSheet[] heros;
-
         Menu menu;
-
         BattleUnit actingUnit;
         const int ATBPerSecond = 50;
+        
+        private BattleGroup _group;
+        private int _groupId;
 
-        public BattleState(ContentManager cm)
+        public BattleState(ContentManager cm, RomGame romGame)
         {
+            _romGame = romGame;
             var bartzTex = cm.Load<Texture2D>("Bartz");
             var lennaTex = cm.Load<Texture2D>("Lenna");
             var galufTex = cm.Load<Texture2D>("Galuf");
@@ -61,13 +68,13 @@ namespace FinalFantasyV.GameStates
             //menuSelector = new MenuSelector(new Vector2[] { new(16*10, 16*10), new(160, 16*11)},
             //    new Action[] { });
 
-            heros = new[]
-            {
+            heros =
+            [
                 new SpriteSheet(bartzTex, 30, 30, Vector2.Zero, Vector2.Zero),
                 new SpriteSheet(lennaTex, 30, 30, Vector2.Zero, Vector2.Zero),
                 new SpriteSheet(galufTex, 30, 30, Vector2.Zero, Vector2.Zero),
                 new SpriteSheet(farisTex, 30, 30, Vector2.Zero, Vector2.Zero)
-            };
+            ];
             
         }
 
@@ -81,6 +88,7 @@ namespace FinalFantasyV.GameStates
             units.Add(new BattleHero(heros[1], ps.Slots[1], new Vector2(16 * 13, 16 * 7)));
             units.Add(new BattleHero(heros[2], ps.Slots[2], new Vector2(16 * 13, 16 * 9)));
             units.Add(new BattleHero(heros[3], ps.Slots[3], new Vector2(16 * 13, 16 * 11)));
+            _group = _romGame.GetBattleGroup(FF5.Graphics.GraphicsDevice, _groupId);
         }
 
         private void ActionFinished()
@@ -118,6 +126,8 @@ namespace FinalFantasyV.GameStates
                 DrawCharacterHealth(i, ps.Slots[i].CurrHP);
                 Menu.DrawString(spriteBatch, background, PartyState.GetName(ps.Slots[i].Hero), new Vector2(8 * 13, 8*(22+i*2)));
             }
+            
+            _group.Draw(spriteBatch);
 
             spriteBatch.End();
         }
@@ -142,13 +152,19 @@ namespace FinalFantasyV.GameStates
         {
             if (Keyboard.GetState().IsKeyDown(Keys.Back)) stateStack.Pop();
 
+            if (InputHandler.KeyPressed(Keys.L))
+            {
+                _groupId++;
+                _group = _romGame.GetBattleGroup(FF5.Graphics.GraphicsDevice, _groupId);
+            }
+            
             switch (battleState)
             {
                 case EBattleState.TimeFlowing:
                     foreach (var unit in units)
                     {
                         unit.AdvanceATB(gameTime);
-                        if (unit.ATB == 255)
+                        if (Math.Abs(unit.ATB - 255) < 0.1)
                         {
                             unit.BeginAction();
                             battleState = EBattleState.UnitActing;

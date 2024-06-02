@@ -45,7 +45,8 @@ public class FF5 : Game
 
     private Texture2D tex;
     private SpriteFont font;
-    
+
+    private RomGame _romGame; 
     
     public FF5()
     {
@@ -75,7 +76,9 @@ public class FF5 : Game
             var offset = RomGame.CheckSNESHeader(br);
             RomData.Instantiate(br, offset.Item2);
         }
-        
+
+
+        _romGame = new RomGame();
         partyState = new PartyState(Content);
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         stateStack = new StateStack();
@@ -92,9 +95,9 @@ public class FF5 : Game
         partyState.AddItem(RomData.GetGearByName("[Shld]Leather"));
         partyState.AddItem(RomData.GetGearByName("[Shld]Leather"));
         
-        stateStack.Add("world", new WorldState(Content));
+        stateStack.Add("world", new WorldState(Content, _romGame));
         stateStack.Add("menu", new CharacterMenu(Content));
-        stateStack.Add("battle", new BattleState(Content));
+        stateStack.Add("battle", new BattleState(Content, _romGame));
         stateStack.Add("menu.equipment", new EquipmentMenu(Content));
         stateStack.Add("menu.item", new ItemMenu(Content));
         stateStack.Add("menu.status", new StatusMenu(Content));

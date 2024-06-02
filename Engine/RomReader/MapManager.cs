@@ -70,6 +70,8 @@ namespace Engine.RomReader
         public List<byte> Tilemap01 = [];
         public List<byte> Tilemap02 = [];
 
+        public List<BattleGroup> BattleGroups;
+
         // Current map tile properties
         public List<byte> TilePropertiesL = [];
         public List<byte> TilePropertiesH = [];
@@ -175,6 +177,8 @@ namespace Engine.RomReader
             _monsterZones         = [];
             _monsterWolrdMapZones = [];
 
+            BattleGroups = [];
+            
             // D0/3000-D0/4FFF	Data	Monster Encounter (512*16)
             //   0-2    [...]
             //   3  	Visible monsters (bitwise)
@@ -194,6 +198,15 @@ namespace Engine.RomReader
 
                 encounterData = encounterData.Substring(0, encounterData.Length - 2);
                 Encounters.Add(encounterData);
+                BattleGroups.Add(new BattleGroup(encounter));
+            }
+
+            
+            
+            br.BaseStream.Position = 0x108900 + headerOffset;
+            for (int i = 0; i < 0x200; i++)
+            {
+                BattleGroups[i].LoadMonsterPositions(br.ReadBytes(8));
             }
 
 
@@ -2927,7 +2940,7 @@ namespace Engine.RomReader
                 else
                 {
                     //var tile = Decode3Bpp(br.ReadBytes(24));
-                    Image<Rgba32> t = (Image<Rgba32>)Transformations.transform3bpp(br.ReadBytes(24).ToList(), 0, 512, newPal);
+                    Image<Rgba32> t = Transformations.transform3bpp(br.ReadBytes(24).ToList(), 0, 512, newPal);
                     tileTex.Add(ConvertToTex(gd, t));
                     //ileTex.Add(Palettes.TextureFromData(gd, tile, palette));
                 }

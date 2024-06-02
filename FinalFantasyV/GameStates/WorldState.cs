@@ -38,7 +38,7 @@ namespace FinalFantasyV.GameStates
         private Monster enemy;
         private int _enemyId = 1;
 
-        public WorldState(ContentManager cm)
+        public WorldState(ContentManager cm, RomGame romGame)
 		{
             // Bartz: new Vector2(365, 452)
             // Lenna: new Vector2(365-1, 452-7)
@@ -51,7 +51,7 @@ namespace FinalFantasyV.GameStates
             WorldCharacter.DoneMovement += CheckNewTile;
             WorldCharacter.IsVisible = true;
             Objects = new WorldCharacter[32];
-            _rom = new RomGame();
+            _rom = romGame;
             TextPopup = new();
             
             // World Map
@@ -59,6 +59,7 @@ namespace FinalFantasyV.GameStates
             
             // Tule
             ChangeMap(32, new Vector2(32 * 16, 45 * 16));
+            
         }
 
         public void ChangeMap(int newMapId, Vector2 newPos)
@@ -68,7 +69,7 @@ namespace FinalFantasyV.GameStates
             _rom.Update(newMapId);
             _exits = _rom.Map.Exits;
             WorldCharacter.Position = newPos;
-            enemy = _rom.ShowMonster(gd, _enemyId);
+            //enemy = _rom.GetMonster(gd, _enemyId);
             Objects = SpriteSheet.LoadSprites(_rom.Map);
 
         }
@@ -88,14 +89,14 @@ namespace FinalFantasyV.GameStates
         {
             spriteBatch.Begin(transformMatrix: _camera.Transform);
 
-            //_backgroundLayers.DrawBelowCharacter(spriteBatch, WorldCharacter.Position);
+            _backgroundLayers.DrawBelowCharacter(spriteBatch, WorldCharacter.Position);
             WorldCharacter.Draw(spriteBatch);
-            //foreach (var s in Objects)
-                //s.Draw(spriteBatch);
-            //_backgroundLayers.DrawAboveCharacter(spriteBatch, WorldCharacter.Position);
+            foreach (var s in Objects)
+                s.Draw(spriteBatch);
+            _backgroundLayers.DrawAboveCharacter(spriteBatch, WorldCharacter.Position);
 
             //spriteBatch.Draw(enemy, WorldCharacter.Position - new Vector2(64,64), Color.White);
-            enemy.Draw(spriteBatch, WorldCharacter.Position - new Vector2(64,64));
+            //enemy.Draw(spriteBatch, WorldCharacter.Position - new Vector2(64,64));
             spriteBatch.End();
             TextPopup.Render(spriteBatch);
         }
@@ -200,7 +201,8 @@ namespace FinalFantasyV.GameStates
             if (InputHandler.KeyPressed(Keys.L))
             {
                 _enemyId++;
-                enemy = _rom.ShowMonster(FF5.Graphics.GraphicsDevice, _enemyId);
+                //enemy = _rom.GetMonster(FF5.Graphics.GraphicsDevice, _enemyId);
+                //group = _rom.GetBattleGroup(FF5.Graphics.GraphicsDevice, _enemyId);
             }
 
             if (InputHandler.KeyPressed(Keys.Space))
