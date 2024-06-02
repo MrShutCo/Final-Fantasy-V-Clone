@@ -161,6 +161,13 @@ public class RomGame
 
     }
 
+    public Monster ShowMonster(GraphicsDevice gd, int id)
+    {
+        int golem = 78;
+        int bahamut = 153;
+        return Map.LoadMonster(gd, br, offset, id);
+    }
+
     public void Update(int id)
     {
         int quadrantsToGoTo = 1;

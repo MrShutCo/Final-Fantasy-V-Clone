@@ -46,7 +46,7 @@ static string BinaryToHex(string binary)
 
     return hex.ToString();
 }
-
+/*
 HashSet<int> indices = [8, 9, 25, 26, 32, 40, 50, 51, 74, 86, 87, ];
 string binary = "";
 for (int i = 0; i < 80; i++)
@@ -54,6 +54,8 @@ for (int i = 0; i < 80; i++)
     binary += indices.Contains(i) ? '1' : '0';
 }
 
-Console.WriteLine(BinaryToHex(binary));
+Console.WriteLine(BinaryToHex(binary));*/
+
+
 
 

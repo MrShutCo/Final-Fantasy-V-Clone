@@ -35,6 +35,9 @@ namespace FinalFantasyV.GameStates
         private bool _isEventComplete;
         private bool _isPaused = false;
 
+        private Monster enemy;
+        private int _enemyId = 1;
+
         public WorldState(ContentManager cm)
 		{
             // Bartz: new Vector2(365, 452)
@@ -65,7 +68,9 @@ namespace FinalFantasyV.GameStates
             _rom.Update(newMapId);
             _exits = _rom.Map.Exits;
             WorldCharacter.Position = newPos;
+            enemy = _rom.ShowMonster(gd, _enemyId);
             Objects = SpriteSheet.LoadSprites(_rom.Map);
+
         }
 
         
@@ -83,11 +88,14 @@ namespace FinalFantasyV.GameStates
         {
             spriteBatch.Begin(transformMatrix: _camera.Transform);
 
-            _backgroundLayers.DrawBelowCharacter(spriteBatch, WorldCharacter.Position);
+            //_backgroundLayers.DrawBelowCharacter(spriteBatch, WorldCharacter.Position);
             WorldCharacter.Draw(spriteBatch);
-            foreach (var s in Objects)
-                s.Draw(spriteBatch);
-            _backgroundLayers.DrawAboveCharacter(spriteBatch, WorldCharacter.Position);
+            //foreach (var s in Objects)
+                //s.Draw(spriteBatch);
+            //_backgroundLayers.DrawAboveCharacter(spriteBatch, WorldCharacter.Position);
+
+            //spriteBatch.Draw(enemy, WorldCharacter.Position - new Vector2(64,64), Color.White);
+            enemy.Draw(spriteBatch, WorldCharacter.Position - new Vector2(64,64));
             spriteBatch.End();
             TextPopup.Render(spriteBatch);
         }
@@ -189,9 +197,10 @@ namespace FinalFantasyV.GameStates
                 _events.Peek().OnStart(_partyState, this);
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.L))
+            if (InputHandler.KeyPressed(Keys.L))
             {
-                TextPopup.ShowText("Galuf:  (Bartz)![EOL]  Is something wrong?[EOL][EOL][EOL](Bartz):  No... nothing at all...[EOL]  Maybe I'm just going crazy...?[EOL][EOL][EOL]Galuf:  Hmm... get out of the way!");
+                _enemyId++;
+                enemy = _rom.ShowMonster(FF5.Graphics.GraphicsDevice, _enemyId);
             }
 
             if (InputHandler.KeyPressed(Keys.Space))

@@ -11,11 +11,16 @@
 * 
 */
 
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SixLabors.ImageSharp.Drawing;
 using SixLabors.ImageSharp.Drawing.Processing;
+using Color = SixLabors.ImageSharp.Color;
 using Path = System.IO.Path;
+using Point = SixLabors.ImageSharp.Point;
+using Rectangle = SixLabors.ImageSharp.Rectangle;
 
 namespace Engine.RomReader
 {
@@ -371,15 +376,7 @@ namespace Engine.RomReader
 
                 for (int j = 0; j < 0x0100; j += 2)
                 {
-                    int color = bytePal[j] + (bytePal[j + 1] * 0x0100);
-                    int r = ((color >> 0x0) & 0x1F) << 3;
-                    int g = ((color >> 0x5) & 0x1F) << 3;
-                    int b = ((color >> 0xA) & 0x1F) << 3;
-                    r = r + (r >> 5);
-                    g = g + (g >> 5);
-                    b = b + (b >> 5);
-
-                    newPalette.Add(Color.FromRgb((byte)r, (byte)g, (byte)b));
+                    newPalette.Add(Palettes.Convert(Palettes.GetColour(bytePal[j], bytePal[j+1])));
                 }
 
                 _worldMapBgPalettes.Add(newPalette);
@@ -482,15 +479,7 @@ namespace Engine.RomReader
 
                 for (int j = 0; j < 0x0100; j += 2)
                 {
-                    int color = bytePal[j] + (bytePal[j + 1] * 0x0100);
-                    int r = ((color >> 0x0) & 0x1F) << 3;
-                    int g = ((color >> 0x5) & 0x1F) << 3;
-                    int b = ((color >> 0xA) & 0x1F) << 3;
-                    r = r + (r >> 5);
-                    g = g + (g >> 5);
-                    b = b + (b >> 5);
-
-                    newPalette.Add(Color.FromRgb((byte)r, (byte)g, (byte)b));
+                    newPalette.Add(Palettes.Convert(Palettes.GetColour(bytePal[j], bytePal[j+1])));
                 }
 
                 _bgPalettes.Add(newPalette);
@@ -511,15 +500,7 @@ namespace Engine.RomReader
 
                     for (int j = 0; j < 0x0020; j += 2)
                     {
-                        int color = bytePal[j] + (bytePal[j + 1] * 0x0100);
-                        int r = ((color >> 0x0) & 0x1F) << 3;
-                        int g = ((color >> 0x5) & 0x1F) << 3;
-                        int b = ((color >> 0xA) & 0x1F) << 3;
-                        r = r + (r >> 5);
-                        g = g + (g >> 5);
-                        b = b + (b >> 5);
-
-                        newPalette.Add(Color.FromRgb((byte)r, (byte)g, (byte)b));
+                        newPalette.Add(Palettes.Convert(Palettes.GetColour(bytePal[j], bytePal[j+1])));
                     }
 
                     _spritePalettes.Add(newPalette);
@@ -2902,9 +2883,120 @@ namespace Engine.RomReader
 
         #endregion
 
+        #region Monster Graphics
+    
+        public Monster LoadMonster(GraphicsDevice gd, BinaryReader br, int headerOffset, int monsterId)
+        {
+            br.BaseStream.Position = 0x14B180 + headerOffset + monsterId * 5;
+            var monsterData = br.ReadBytes(5);
+            bool is4BPP = ((monsterData[0] & 0b1000_0000) >> 7) == 0;
+            int tilesetId = monsterData[1] + (monsterData[0] & 0b0111_1111) * 0x100;
+            //tilesetId = is4BPP ? tilesetId * 32 : tilesetId * 24;
+            
+            bool is128x128 = ((monsterData[2] & 0b1000_0000) >> 7) == 1;
+            int tilesetAddress = 0x150000 + headerOffset + tilesetId * 8;
+            byte formId = monsterData[4];
 
+            var paletteId = (monsterData[3] + (monsterData[2] & 0b0000_0011) * 0x100);
+            br.BaseStream.Position = 0x0ED000 + 8 * paletteId;
+            var paletteData = is4BPP ? br.ReadBytes(32) : br.ReadBytes(16);
+            var palette = Palettes.GetColourPalette(paletteData);
+
+            br.BaseStream.Position = is128x128 ? 0x10D334 + 32 * formId : 0x10D004 + 8 * formId;
+            var form = is128x128 ? br.ReadBytes(32) : br.ReadBytes(8);
+            if (is128x128) SwapFormPairs(form);
+            
+            br.BaseStream.Position = tilesetAddress;
+            
+            Console.WriteLine($"Monster id: {monsterId}");
+            Console.WriteLine($"Size is 128: {is128x128}");
+            Console.WriteLine($"is 4BPP: {is4BPP}");
+            Console.WriteLine();
+
+            List<Texture2D> tileTex = new();
+
+            var newPal = palette.Select(p => Palettes.Convert(p)).ToArray();
+            int tiles = NumberOfTiles(form);
+            for (int i = 0; i < tiles; i++)
+            {
+                if (is4BPP)
+                {
+                    Image<Rgba32> t = (Image<Rgba32>)Transformations.transform4b(br.ReadBytes(32).ToList(), 0, 512, newPal);
+                    tileTex.Add(ConvertToTex(gd, t));
+                }
+                else
+                {
+                    //var tile = Decode3Bpp(br.ReadBytes(24));
+                    Image<Rgba32> t = (Image<Rgba32>)Transformations.transform3bpp(br.ReadBytes(24).ToList(), 0, 512, newPal);
+                    tileTex.Add(ConvertToTex(gd, t));
+                    //ileTex.Add(Palettes.TextureFromData(gd, tile, palette));
+                }
+            }
+
+            return new Monster(tileTex, form, new Vector2(512,512), is128x128 ? 128 : 64);
+
+        }
+
+        static void SwapFormPairs(byte[] form)
+        {
+            for (int i = 0; i < form.Length; i+=2)
+            {
+                (form[i], form[i + 1]) = (form[i + 1], form[i]);
+            }
+        }
+
+        static int NumberOfTiles(byte[] data)
+        {
+            return data.Sum(CountBits);
+        }
+        
+        static int CountBits(byte b)
+        {
+            int count = 0;
+            while (b != 0)
+            {
+                count += b & 1; // Increment count if the least significant bit is 1
+                b >>= 1;        // Shift right to check the next bit
+            }
+            return count;
+        }
+        
+        static byte[] Decode3Bpp(byte[] data)
+        {
+            int tileSize = 8;
+            int planes = 3;
+            byte[] pixels = new byte[tileSize*tileSize];
+
+            var bp1 = new byte[8];
+            var bp2 = new byte[8];
+            var bp3 = data[16..];
+
+            // bitplane 1 and 2
+            for (int i = 0; i < tileSize; i++)
+            {
+                bp1[i] = data[2 * i];
+                bp2[i] = data[2 * i + 1];
+            }
+
+            // Combine together
+            for (int i = 0; i < tileSize; i++) // byte
+            {
+                for (int j = 0; j < tileSize; j++) // bit
+                {
+                    var b1 = (bp1[i] >> j) & 1;
+                    var b2 = (bp2[i] >> j) & 1;
+                    var b3 = (bp3[i] >> j) & 1;
+                    pixels[i * tileSize + (7-j)] = (byte)(b1 | (b2 << 1) | (b3 << 2)); // 7-j is to flip images
+                }
+            }
+
+            return pixels;
+        }
+    
+        #endregion
 
     }
+
 
 
 

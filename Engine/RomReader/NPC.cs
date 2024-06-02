@@ -82,7 +82,7 @@ public class NPC
         this.direction    = (byte)((data[6] & 0xE0) >> 0x05);
         this.unknown      = (byte)((data[6] & 0x1C));
 
-        string actions;
+        List<byte> actions;
         List<int> speechId = getSpeechId(br, headerOffset, actionId, out actions);
         //dialogue += "Actions:\r\n------------------------------------------\r\n";
         //dialogue += actions + "\r\n\r\n";
@@ -127,13 +127,13 @@ public class NPC
         *
         * @return the id of the speech.
         */
-    private List<int> getSpeechId(BinaryReader br, int headerOffset, int actionId, out string completeAction)
+    private List<int> getSpeechId(BinaryReader br, int headerOffset, int actionId, out List<byte> completeAction)
     {
         // This works as the C0/2F97 routine in the SNES ROM
         // (I don't fully understand it yet) // HACKME
 
         List<int> output = new List<int>();
-        completeAction = "";
+        completeAction = [];
         //$C0/2F97
 
         //(A 8 bit)
@@ -162,24 +162,26 @@ public class NPC
         while (true)
         {
             accumulator = br.ReadByte();
-            completeAction += "CE/" + (var23 - headerOffset).ToString("X4") + ":\t";
-            completeAction += accumulator.ToString("X2") + " (";
+            //completeAction += "CE/" + (var23 - headerOffset).ToString("X4") + ":\t";
+            //completeAction += accumulator.ToString("X2") + " (";
+            completeAction.Add((byte)accumulator);
             if (accumulator == 0xF0) break;
             var23 += actionSizes[accumulator - 0xF0];
             foreach (byte item in br.ReadBytes(actionSizes[accumulator - 0xF0] - 1))
             {
-                completeAction += item.ToString("X2") + " ";
+                completeAction.Add(item);
             }
-            completeAction += ")\r\n";
+            //completeAction += ")\r\n";
         }
+        //Event.ReadEvent(br, headerOffset, )
         var23++;
-        completeAction += ")\r\n\r\n";
+       // completeAction += ")\r\n\r\n";
 
         while (var23 < var26)
         {
             output.Add(br.ReadByte() + br.ReadByte() * 0x0100);
-            completeAction += "CE/" + (var23 - headerOffset).ToString("X4") + ":\t";
-            completeAction += output.Last().ToString("X4") + "\r\n";
+            //completeAction += "CE/" + (var23 - headerOffset).ToString("X4") + ":\t";
+            //completeAction += output.Last().ToString("X4") + "\r\n";
             var23 += 2;
         }
 
