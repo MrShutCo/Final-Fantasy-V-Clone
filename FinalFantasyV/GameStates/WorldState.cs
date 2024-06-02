@@ -45,8 +45,7 @@ namespace FinalFantasyV.GameStates
             // Galuf new Vector2(365-4, 452-13)
             _newEvent = new();
             _menu = new();
-            WorldCharacter = new WorldCharacter(new SpriteSheet(FF5.Bartz, 16, 16, new Vector2(365, 452), new Vector2(4, 4)), 
-                new Vector2(32*16, 51*16));
+            WorldCharacter = new WorldCharacter(FF5.BartzSprite, new Vector2(32*16, 51*16));
             _camera = new Camera();
             WorldCharacter.DoneMovement += CheckNewTile;
             WorldCharacter.IsVisible = true;
@@ -56,9 +55,10 @@ namespace FinalFantasyV.GameStates
             
             // World Map
             //ChangeMap(0, new Vector2(156 * 16, 150 * 16));
+            ChangeMap(17, new Vector2(12 *16, 20*16));
             
             // Tule
-            ChangeMap(32, new Vector2(32 * 16, 45 * 16));
+            //ChangeMap(32, new Vector2(32 * 16, 45 * 16));
             
         }
 
@@ -137,7 +137,7 @@ namespace FinalFantasyV.GameStates
             WorldCharacter.Update(gameTime);
             foreach (var s in Objects)
                 s.Update(gameTime);
-            _camera.Follow(WorldCharacter.Position, new Vector2(256, 240));
+            _camera.Follow(WorldCharacter.Position + new Vector2(8,8), new Vector2(256, 240));
 
             
             if (_events?.Count > 0)

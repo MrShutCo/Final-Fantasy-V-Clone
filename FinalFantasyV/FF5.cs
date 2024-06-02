@@ -2,6 +2,7 @@
 using System.IO;
 using Engine.RomReader;
 using Final_Fantasy_V.Models;
+using FinalFantasyV.Events;
 using FinalFantasyV.GameStates;
 using FinalFantasyV.GameStates.Menus;
 using FinalFantasyV.Sprites;
@@ -36,6 +37,12 @@ public class FF5 : Game
     Texture2D worldMap;
     Menu menu;
 
+    public static SpriteSheet BartzSprite;
+    public static SpriteSheet LennaSprite;
+    public static SpriteSheet GalufSprite;
+    public static SpriteSheet FarisSprite;
+    public static SpriteSheet ChocoboSprite;
+
     StateStack stateStack;
 
     TiledMap tilemap;
@@ -56,7 +63,6 @@ public class FF5 : Game
         IsMouseVisible = true;
         Graphics.PreferredBackBufferWidth = 256 * 3;
         Graphics.PreferredBackBufferHeight = 240 * 3;
-        //MapExtractor.ReadMap(1);
         _fpsCounter = new SimpleFps();
     }
 
@@ -95,6 +101,12 @@ public class FF5 : Game
         partyState.AddItem(RomData.GetGearByName("[Shld]Leather"));
         partyState.AddItem(RomData.GetGearByName("[Shld]Leather"));
         
+        BartzSprite = new SpriteSheet(Bartz, 16, 16, new Vector2(365, 452), new Vector2(4, 4));
+        LennaSprite = new SpriteSheet(Lenna, 16, 16, new Vector2(365, 452), new Vector2(4, 4));
+        GalufSprite = new SpriteSheet(Galuf, 16, 16, new Vector2(365, 452), new Vector2(4, 4));
+        FarisSprite = new SpriteSheet(Faris, 16, 16, new Vector2(365, 452), new Vector2(4, 4));
+        ChocoboSprite = new SpriteSheet(NPCTexture, 16, 16, new Vector2(142, 584), new Vector2(4, 4));
+        
         stateStack.Add("world", new WorldState(Content, _romGame));
         stateStack.Add("menu", new CharacterMenu(Content));
         stateStack.Add("battle", new BattleState(Content, _romGame));
@@ -104,6 +116,13 @@ public class FF5 : Game
         stateStack.Add("menu.magic", new MagicMenu(Content));
         stateStack.Add("menu.job", new JobMenu(Content));
         stateStack.Push("world", partyState);
+
+        // Cutscene shortcut
+        NewEventManager.EventFlags[510] = true; // Event 38
+        NewEventManager.EventFlags[476] = true; // Event 38
+        //NewEventManager.EventFlags[510] = false; // Huh? Event 39
+        NewEventManager.EventFlags[446] = true;
+        NewEventManager.EventFlags[16] = true;
 
     }
 
@@ -135,7 +154,7 @@ public class FF5 : Game
         _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, SamplerState.PointClamp, DepthStencilState.Default);
         _spriteBatch.Draw(target, new Rectangle(0, 0, Graphics.PreferredBackBufferWidth, Graphics.PreferredBackBufferHeight), Color.White);
         
-        _fpsCounter.DrawFps(_spriteBatch, font, new Vector2(16,16), Color.White);
+        //_fpsCounter.DrawFps(_spriteBatch, font, new Vector2(16,16), Color.White);
         
         _spriteBatch.End();
         base.Draw(gameTime);

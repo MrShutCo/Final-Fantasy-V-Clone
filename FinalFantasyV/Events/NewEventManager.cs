@@ -6,8 +6,8 @@ namespace FinalFantasyV.Events;
 
 public class NewEventManager
 {
-    public bool[] EventFlags = new bool[512];
-    public bool[] NpcSwitches = new bool[921];
+    public static bool[] EventFlags = new bool[512];
+    public static bool[] NpcSwitches = new bool[921];
     
     public void SetFlag(int flag, bool status)
     {
@@ -174,7 +174,10 @@ public class NewEventManager
     {
         
         var action = byteGrouping[0];
-        if (action <= 0x40 || (action >= 0x80 && action <= 0x80+32))
+        
+        if (action is 0xF3 or 0xB1 or 0xA8) return new EventCatchAll(byteGrouping);
+        
+        if (action <= 0x40 || (action >= 0x80 && action <= 0x80+31))
         {
             return ProcessAction(byteGrouping);
         }
@@ -184,7 +187,7 @@ public class NewEventManager
             return new EventWait(byteGrouping);
         }
 
-        if (action is 0xF3) return new EventCatchAll(byteGrouping);
+        
 
         if (action >= 0xA2 && action <= 0xA6)
         {

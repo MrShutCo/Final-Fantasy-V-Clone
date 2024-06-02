@@ -24,7 +24,7 @@ public class TextPopup
         tileData = MapIO.ReadMap("Tilemaps/mainmenu.tmj");
         menuSpritesheet = new SpriteSheet(FF5.MenuTexture, 8, 8, Vector2.Zero, Vector2.Zero);
         _tilesetInfo = FF5.MenuTilesetInfo;
-        Menu.SetBox(tileData, 1, 1, 30, 8);
+        Menu.SetBox(tileData, 1, 1, 30, 10);
         _currentTextIndex = 0;
     }
     

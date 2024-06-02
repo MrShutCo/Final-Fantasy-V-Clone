@@ -1,3 +1,4 @@
+using Final_Fantasy_V.Models;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -10,25 +11,37 @@ public class MapBattles
 
 public class BattleGroup
 {
-    private List<byte> _monsters;
+    public List<byte> MonsterIds { get; private set; }
     private byte _visibiltyMask;
     private byte _palette1;
     private byte _palette2;
     private ushort _music;
 
     public List<Vector2> MonsterPositions;
-
     private List<Monster> _monsterSprites;
+    public List<Enemy> EnemyData { get; private set; }
     
     public BattleGroup(byte[] battleData)
     {
-        _monsters = battleData[4..0xB].ToList();
+        MonsterIds = battleData[4..0xB].ToList();
         _visibiltyMask = battleData[3];
         _palette1 = battleData[0xC];
         _palette1 = battleData[0xD];
         _music = (ushort)(battleData[0xE] + battleData[0xF] * 0x100);
         MonsterPositions = [];
         _monsterSprites = [];
+        EnemyData = [];
+    }
+
+    public void SetUnits(List<Enemy> enemies)
+    {
+        foreach (var enemy in enemies)
+        {
+            if (enemy.Name != "[FF][FF][FF][FF][FF][FF][FF][FF][FF][FF]")
+            {
+                EnemyData.Add(enemy);
+            }
+        }
     }
 
     public void LoadMonsterPositions(byte[] posData)
@@ -44,11 +57,11 @@ public class BattleGroup
 
     public void LoadMonsterData(GraphicsDevice gd, RomGame rom)
     {
-        for (int i = 0; i < _monsters.Count; i++)
+        for (int i = 0; i < MonsterIds.Count; i++)
         {
-            if (_monsters[i] != 0xFF)
+            if (MonsterIds[i] != 0xFF)
             {
-                _monsterSprites.Add(rom.GetMonster(gd, _monsters[i]));
+                _monsterSprites.Add(rom.GetMonster(gd, MonsterIds[i]));
             }
         }
     }

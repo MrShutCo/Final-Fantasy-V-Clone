@@ -48,6 +48,27 @@ public class EventCatchAll : IGameEvent
             }
             Completed?.Invoke();
         }
+
+        if (action[0] == 0xB1)
+        {
+            var newChar = action[1] switch
+            {
+                2 => FF5.BartzSprite,
+                3 => FF5.LennaSprite,
+                4 => FF5.GalufSprite,
+                5 => FF5.FarisSprite,
+                7 => FF5.ChocoboSprite,
+                _ => FF5.BartzSprite
+            };
+            ms.WorldCharacter.SetCharacter(newChar);
+            Completed?.Invoke();
+        }
+
+        if (action[0] == 0xA8)
+        {
+            Console.WriteLine("Change HP");
+            Completed?.Invoke();
+        }
     }
 
     public void Update(GameTime gameTime, WorldState ws)

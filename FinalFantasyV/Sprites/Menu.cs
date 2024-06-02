@@ -82,7 +82,8 @@ namespace FinalFantasyV.Sprites
 			}
 
 			text = text.Replace("[FF]", "");
-			
+			text = text.Replace("(Bartz)", "Bartz");
+			text = text.Replace("[Wait]", ""); // TODO: tyler add an actual wait in here
 			
 			for (; i < text.Length; i++)
 			{

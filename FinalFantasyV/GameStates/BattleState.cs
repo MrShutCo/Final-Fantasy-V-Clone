@@ -13,8 +13,7 @@ namespace FinalFantasyV.GameStates
 
     public class BattleState : IState
     {
-
-        enum EBattleState
+        private enum EBattleState
         {
             TimeFlowing,
             UnitActing,
@@ -23,25 +22,22 @@ namespace FinalFantasyV.GameStates
         }
 
         public StateStack stateStack { get; set; }
-
-        TilesetInfo tilesetInfo;
-        Map tileData;
-        List<BattleUnit> units;
-        SpriteSheet background;
-        InputHandler input;
-
-
-        private RomGame _romGame;
-        //MenuSelector menuSelector;
-
-        EBattleState battleState;
-
         public event BattleCallback Ended;
 
-        SpriteSheet[] heros;
-        Menu menu;
-        BattleUnit actingUnit;
-        const int ATBPerSecond = 50;
+        private TilesetInfo _tilesetInfo;
+        private Map _tileData;
+        private List<BattleUnit> _units;
+        private SpriteSheet _background;
+        private InputHandler _input;
+        
+        private RomGame _romGame;
+
+        private EBattleState _battleState;
+        
+        private SpriteSheet[] _heros;
+        private Menu _menu;
+        private BattleUnit _actingUnit;
+        private const int AtbPerSecond = 50;
         
         private BattleGroup _group;
         private int _groupId;
@@ -54,21 +50,21 @@ namespace FinalFantasyV.GameStates
             var galufTex = cm.Load<Texture2D>("Galuf");
             var farisTex = cm.Load<Texture2D>("Faris");
             var menuTex = cm.Load<Texture2D>("fontmenu");
-            tileData = MapIO.ReadMap("Tilemaps/battle.tmj");
-            tilesetInfo = MapIO.ReadTileSet(cm, "Tilemaps/Menu.tsj");
+            _tileData = MapIO.ReadMap("Tilemaps/battle.tmj");
+            _tilesetInfo = MapIO.ReadTileSet(cm, "Tilemaps/Menu.tsj");
 
             var backgroundTex = cm.Load<Texture2D>("backgrounds");
-            background = new SpriteSheet(backgroundTex, 240, 160, new Vector2(2,2), new Vector2(4, 6));
-            background.SetTile(1, 0);
-            battleState = EBattleState.TimeFlowing;
+            _background = new SpriteSheet(backgroundTex, 240, 160, new Vector2(2,2), new Vector2(4, 6));
+            _background.SetTile(1, 0);
+            _battleState = EBattleState.TimeFlowing;
 
-            menu = new();
+            _menu = new();
 
-            input = new InputHandler();
+            _input = new InputHandler();
             //menuSelector = new MenuSelector(new Vector2[] { new(16*10, 16*10), new(160, 16*11)},
             //    new Action[] { });
 
-            heros =
+            _heros =
             [
                 new SpriteSheet(bartzTex, 30, 30, Vector2.Zero, Vector2.Zero),
                 new SpriteSheet(lennaTex, 30, 30, Vector2.Zero, Vector2.Zero),
@@ -80,26 +76,24 @@ namespace FinalFantasyV.GameStates
 
         public void OnEnter(PartyState ps)
         {
-            tileData.SetLayerVisible(0, true);
-            tileData.SetLayerVisible(1, false);
+            _tileData.SetLayerVisible(0, true);
+            _tileData.SetLayerVisible(1, false);
             Ended += ActionFinished;
-            units = new List<BattleUnit>();
-            units.Add(new BattleHero(heros[0], ps.Slots[0], new Vector2(16*13, 16*5)));
-            units.Add(new BattleHero(heros[1], ps.Slots[1], new Vector2(16 * 13, 16 * 7)));
-            units.Add(new BattleHero(heros[2], ps.Slots[2], new Vector2(16 * 13, 16 * 9)));
-            units.Add(new BattleHero(heros[3], ps.Slots[3], new Vector2(16 * 13, 16 * 11)));
+            _units = new List<BattleUnit>();
+            _units.Add(new BattleHero(_heros[0], ps.Slots[0], new Vector2(16*13, 13*4)));
+            _units.Add(new BattleHero(_heros[1], ps.Slots[1], new Vector2(16 * 13, 13 * 6)));
+            _units.Add(new BattleHero(_heros[2], ps.Slots[2], new Vector2(16 * 13, 13 * 8)));
+            _units.Add(new BattleHero(_heros[3], ps.Slots[3], new Vector2(16 * 13, 13 * 10)));
             _group = _romGame.GetBattleGroup(FF5.Graphics.GraphicsDevice, _groupId);
         }
 
         private void ActionFinished()
         {
-            battleState = EBattleState.TimeFlowing;
-            actingUnit.OnActionFinished -= ActionFinished;
-            actingUnit = null;
+            _battleState = EBattleState.TimeFlowing;
+            _actingUnit.OnActionFinished -= ActionFinished;
+            _actingUnit = null;
 
-            units = new();
-
-
+            _units = new();
         }
 
         public void OnExit()
@@ -110,21 +104,24 @@ namespace FinalFantasyV.GameStates
         {
             spriteBatch.Begin();
 
-            tileData.DrawTileSet(spriteBatch, tilesetInfo);
-            background.Draw(spriteBatch, new Vector2(8, 0));
+            _tileData.DrawTileSet(spriteBatch, _tilesetInfo);
+            _background.Draw(spriteBatch, new Vector2(8, 0));
             //units[0].Draw(spriteBatch, ps.Bartz, new Vector2(16 * 13, 26*2));
             //units[1].Draw(spriteBatch, ps.Lenna, new Vector2(16 * 13, 26*3));
             //units[2].Draw(spriteBatch, ps.Galuf, new Vector2(16 * 13, 26*4));
             //units[3].Draw(spriteBatch, ps.Faris, new Vector2(16 * 13, 26*5));
-            foreach (var unit in units)
+            foreach (var unit in _units)
             {
                 unit.Draw(spriteBatch);
             }
 
-            for (int i = 0; i < 3; i++)
+            DrawEnemyNames();
+
+            for (int i = 0; i < 4; i++)
             {
+                //Menu.DrawText(_tileData, 22, 22+i*2, ps.Slots[i].CurrHP.ToString());
                 DrawCharacterHealth(i, ps.Slots[i].CurrHP);
-                Menu.DrawString(spriteBatch, background, PartyState.GetName(ps.Slots[i].Hero), new Vector2(8 * 13, 8*(22+i*2)));
+                //Menu.DrawString(spriteBatch, _background, PartyState.GetName(ps.Slots[i].Hero), new Vector2(8 * 13, 8*(22+i*2)));
             }
             
             _group.Draw(spriteBatch);
@@ -132,19 +129,28 @@ namespace FinalFantasyV.GameStates
             spriteBatch.End();
         }
 
-        void DrawCharacterHealth(int slot, int health)
+        private void DrawEnemyNames()
+        {
+            for (int i = 0; i < _group.EnemyData.Count; i++)
+            {
+                Menu.DrawText(_tileData, 1, 22+i*2, _group.EnemyData[i].Name);
+            }
+        }
+
+        private void DrawCharacterHealth(int slot, int health)
         {
             int dig1 = health % 10;
             int dig2 = (health / 10) % 10;
             int dig3 = (health / 100) % 10;
             int dig4 = (health / 1000) % 10;
-            tileData.SetTileAt(0, 23, 22+slot*2, 52+dig1);
-            tileData.SetTileAt(0, 22, 22 + slot * 2, 52 + dig2);
-            tileData.SetTileAt(0, 21, 22 + slot * 2, 52 + dig3);
-            tileData.SetTileAt(0, 20, 22 + slot * 2, 52 + dig4);
+            _tileData.SetTileAt(0, 23, 22+slot*2, 52+dig1);
+            _tileData.SetTileAt(0, 22, 22 + slot * 2, 52 + dig2);
+            _tileData.SetTileAt(0, 21, 22 + slot * 2, 52 + dig3);
+            _tileData.SetTileAt(0, 20, 22 + slot * 2, 52 + dig4);
+            
         }
 
-        void DrawCharacterSelection(int slot)
+        private void DrawCharacterSelection(int slot)
         {
         }
 
@@ -155,28 +161,32 @@ namespace FinalFantasyV.GameStates
             if (InputHandler.KeyPressed(Keys.L))
             {
                 _groupId++;
+                for (int i = 0; i < _group.EnemyData.Count; i++)
+                {
+                    Menu.DrawText(_tileData, 1, 22+i*2, "          ");
+                }
                 _group = _romGame.GetBattleGroup(FF5.Graphics.GraphicsDevice, _groupId);
             }
             
-            switch (battleState)
+            switch (_battleState)
             {
                 case EBattleState.TimeFlowing:
-                    foreach (var unit in units)
+                    foreach (var unit in _units)
                     {
                         unit.AdvanceATB(gameTime);
                         if (Math.Abs(unit.ATB - 255) < 0.1)
                         {
                             unit.BeginAction();
-                            battleState = EBattleState.UnitActing;
-                            actingUnit = unit;
-                            actingUnit.OnActionFinished += ActionFinished;
+                            _battleState = EBattleState.UnitActing;
+                            _actingUnit = unit;
+                            _actingUnit.OnActionFinished += ActionFinished;
                             break;
                         }
                     }
 
                     break;
                 case EBattleState.UnitActing:
-                    actingUnit.Update(gameTime, ps);
+                    _actingUnit.Update(gameTime, ps);
                     break;
             }
         }

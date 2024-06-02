@@ -13,6 +13,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using Final_Fantasy_V.Models;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using SixLabors.ImageSharp.Drawing;
@@ -263,6 +264,9 @@ namespace Engine.RomReader
             }
 
 
+            // 12288 bytes of enemy data
+            // 32 bytes per enemy
+            
             // D0/7800-D0/797F	Data	Event encounters (0x0180)
 
             // D0/7980-D0/79FF	Data	Monster-in-a-box encounters (0x0080)
@@ -273,7 +277,31 @@ namespace Engine.RomReader
             //   01		005A 005A	(Gigas) (Gigas)
         }
 
+        public Enemy LoadMonsterStats(BinaryReader br, int offset, int monsterIndex)
+        {
+            br.BaseStream.Position = 0x100000 + offset + monsterIndex * 32;
+            var data = br.ReadBytes(32);
 
+            return new Enemy
+            {
+                Speed = data[0],
+                Attack = data[1],
+                AttMultiplier = data[2], // ?
+                Evade = data[3],
+                Defense = data[4],
+                MagicPower = data[5],
+                MagicDefense = data[6],
+                MagicEvade = data[7],
+                HP = data[8] + data[9] * 0x100,
+                MP = data[10] + data[11] * 0x100,
+                CurrHP = data[8] + data[9] * 0x100,
+                CurrMP = data[10] + data[11] * 0x100,
+                Exp = data[12] + data[13] * 0x100,
+                Gil = data[14] + data[15] * 0x100,
+                Level = data[31],
+                Name = _monsterNames[monsterIndex]
+            };
+        }
 
         /**
         * initSprites
@@ -1022,16 +1050,16 @@ namespace Engine.RomReader
             int x = 0;
             int y = 0;
 
-            var walls = new Wall[64, 64];
+            var walls = new Wall[256, 256];
 
-            if (tileMap.Count < 64 * 64)
+            if (tileMap.Count < 256 * 256)
                 return walls;
 
-            for (int j = 0; j < 64; j++)
+            for (int j = 0; j < 256; j++)
             {
-                for (int i = 0; i < 64; i++)
+                for (int i = 0; i < 256; i++)
                 {
-                    byte item = tileMap[(j * 64) + i];
+                    byte item = tileMap[(j * 256) + i];
                     byte byte00 = (item > 0xBF) ? (byte)0x00 : tileProperties[item * 3 + 0];
 
                     if ((byte00 & 0x01) == 0x00)
@@ -1040,7 +1068,7 @@ namespace Engine.RomReader
                         walls[i, j] = new Wall(true, true, true, true);
 
                     x += 16;
-                    if (x > 16 * 63)
+                    if (x > 16 * 255)
                     {
                         x = 0;
                         y += 16;

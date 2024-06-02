@@ -16,13 +16,13 @@ namespace FinalFantasyV.GameStates
 
         public PartyState(ContentManager cm)
 		{
-            Slots = new Character[]
-            {
+            Slots =
+            [
                 new (Hero.Lenna),
                 new (Hero.Butz),
                 new (Hero.Galuf),
                 new (Hero.Faris)
-            };
+            ];
             HeroSprites =
             [
                 new (cm.Load<Texture2D>("Lenna"), 30, 30, Vector2.Zero, Vector2.Zero),
@@ -32,6 +32,10 @@ namespace FinalFantasyV.GameStates
             ];
             Slots[0].LeftHand = RomData.GetWeaponByName("[Swrd]Broad");
             Gil = 500;
+            Slots[0].Job = EJob.Bard;
+            Slots[1].Job = EJob.Knight;
+            Slots[2].Job = EJob.Berserker;
+            Slots[3].Job = EJob.Geomancer;
             Inventory = new List<Item>
             {
                 

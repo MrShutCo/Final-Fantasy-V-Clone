@@ -21,7 +21,13 @@ public class NPC
     public List<(string, List<ushort>)> dialogues;
     public Texture2D Texture;
 
-    private static readonly HashSet<int> InvisibleActionId = [128, 0, 87, 119];
+    private static readonly HashSet<int> InvisibleActionId = [
+        128, // Local control 
+        0, 
+        119,
+        95, //Chocobo at Tycoon Meteor
+        154 // Local control
+    ];
     private static readonly HashSet<int> VisibleActionIds = [];
     /*[
             8, 9, 25, 26, 32, 40, 41, 42, 50, 51, 74, 86, 87, 88, 90, 95, 96, 97, 98, 99,
@@ -73,14 +79,14 @@ public class NPC
 
         dialogues = new List<(string, List<ushort>)>();
         this.address      = address;
-        this.actionId     = (data[0] + data[1] * 0x0100) & 0x3FFF;
-        this.graphicId    = data[2];
-        this.x            = data[3];
-        this.y            = data[4];
-        this.walkingParam = data[5];
-        this.palette      = (byte)((data[6] & 0x03) >> 0x00);
-        this.direction    = (byte)((data[6] & 0xE0) >> 0x05);
-        this.unknown      = (byte)((data[6] & 0x1C));
+        actionId     = (data[0] + data[1] * 0x0100) & 0x3FFF;
+        graphicId    = data[2];
+        x            = data[3];
+        y            = data[4];
+        walkingParam = data[5];
+        palette      = (byte)((data[6] & 0x03) >> 0x00);
+        direction    = (byte)((data[6] & 0xE0) >> 0x05);
+        unknown      = (byte)(data[6] & 0x1C);
 
         List<byte> actions;
         List<int> speechId = getSpeechId(br, headerOffset, actionId, out actions);

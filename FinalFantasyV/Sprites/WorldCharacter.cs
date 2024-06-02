@@ -10,7 +10,7 @@ namespace FinalFantasyV
 {
 	public enum ECharacterMove
 	{
-		Down,Left,Right,Up
+		Down,Left,Right,Up,Special1,Special2,Special3,Special4
 	}
 
 	public class Tween
@@ -101,26 +101,29 @@ namespace FinalFantasyV
 		public void Face(ECharacterMove move)
 		{
 			if (IsMoving) return;
-			if (move == ECharacterMove.Left)
+			switch (move)
 			{
-				_isMirrored = false;
-				_character.SetTile(4, 0);
+				case ECharacterMove.Left:
+					_isMirrored = false;
+					_character.SetTile(4, 0);
+					break;
+				case ECharacterMove.Right:
+					_isMirrored = true;
+					_character.SetTile(4, 0);
+					break;
+				case ECharacterMove.Up:
+					_character.SetTile(2, 0);
+					break;
+				case ECharacterMove.Down:
+					_character.SetTile(0, 0);
+					break;
+				case ECharacterMove.Special1:
+					_character.SetTile(6, 0);
+					break;
 			}
-            if (move == ECharacterMove.Right)
-            {
-                _isMirrored = true;
-                _character.SetTile(4, 0);
-            }
-            if (move == ECharacterMove.Up)
-            {
-                _character.SetTile(2, 0);
-            }
-            if (move == ECharacterMove.Down)
-            {
-                _character.SetTile(0, 0);
-            }
 
-            Facing = move;
+
+			Facing = move;
 		}
 
 		public Vector2 GetPositionFacing()
@@ -166,78 +169,85 @@ namespace FinalFantasyV
 		public void SetAction(int action)
 		{
 			if (action == 48)
-				SetCharacter(0, 3, true);
+				SetCharacterSprite(0, 3, true);
 			else if (action == 49)
-				SetCharacter(1, 3, true);
+				SetCharacterSprite(1, 3, true);
 			else if (action == 50)
-				SetCharacter(5, 3, true);
+				SetCharacterSprite(5, 3, true);
 			else if (action == 51)
-				SetCharacter(0, 3, false);
+				SetCharacterSprite(0, 3, false);
 			else if (action == 52)
-				SetCharacter(1, 3, false);
+				SetCharacterSprite(1, 3, false);
 			else if (action == 53)
-				SetCharacter(5, 3, false);
+				SetCharacterSprite(5, 3, false);
 			// Face up (Right Hand)
 			else if (action == 54)
-				SetCharacter(4,1,false);
+				SetCharacterSprite(4,1,false);
 			else if (action == 55)
-				SetCharacter(5,1, false);
+				SetCharacterSprite(5,1, false);
 			// Face up (Left Hand)
 			else if (action == 56)
-				SetCharacter(4,1,true);
+				SetCharacterSprite(4,1,true);
 			else if (action == 57)
-				SetCharacter(5,1,true);
+				SetCharacterSprite(5,1,true);
 			// Face left Arm
 			else if (action == 58)
-				SetCharacter(2, 5, false);
+				SetCharacterSprite(5, 2, false);
 			else if (action == 59)
-				SetCharacter(2,4, false);
+				SetCharacterSprite(4,2, false);
 			// Face right arm
 			else if (action == 60)
-				SetCharacter(2, 5, true);
+				SetCharacterSprite(5, 2, true);
 			else if (action == 61)
-				SetCharacter(2,4, true);
+				SetCharacterSprite(4,2, true);
 			else if (action == 62)
-				SetCharacter(0,1, false);
+				SetCharacterSprite(0,1, false);
 			else if (action == 63)
-				SetCharacter(2, 1, false);
+				SetCharacterSprite(2, 1, false);
 			else if (action == 64)
-				SetCharacter(1,1, false);
+				SetCharacterSprite(1,1, false);
 			else if (action == 65)
-				SetCharacter(1,1,true);
+				SetCharacterSprite(1,1,true);
 			else if (action == 66)
-				SetCharacter(6,0,false);
+				SetCharacterSprite(6,0,false);
 			else if (action == 67)
-				SetCharacter(6,0,true);
+				SetCharacterSprite(6,0,true);
 			else if (action == 68)
-				SetCharacter(3,2,false);
+				SetCharacterSprite(3,2,false);
 			else if (action == 69)
-				SetCharacter(3,2,true);
+				SetCharacterSprite(3,2,true);
 			else if (action == 70)
-				SetCharacter(0,2,false);
+				SetCharacterSprite(0,2,false);
 			else if (action == 71)
-				SetCharacter(1,2,false);
+				SetCharacterSprite(1,2,false);
 			else if (action == 72)
-				SetCharacter(4,3,false);
+				SetCharacterSprite(4,3,false);
 			else if (action == 73)
-				SetCharacter(3,3,false);
+				SetCharacterSprite(3,3,false);
 			else if (action == 74)
-				SetCharacter(2,3,false);
+				SetCharacterSprite(2,3,false);
 			//else if (action == 75)
 			//	SetCharacter();
 			else if (action == 76)
-				SetCharacter(2,2,false);
+				SetCharacterSprite(2,2,false);
 			else if (action == 79)
-				SetCharacter(2,2,false);	
+				SetCharacterSprite(2,2,false);	
 			else if (action == 80)
-				SetCharacter(2,2, true);
+				SetCharacterSprite(2,2, true);
 			else
-				SetCharacter(0, 0, false);
+				SetCharacterSprite(0, 0, false);
 		}
 
-		public void SetCharacter(int x, int y, bool isMirrored)
+		public void SetCharacterSprite(int x, int y, bool isMirrored)
 		{
 			_isMirrored = isMirrored;
+			_character.SetTile(x,y);
+		}
+
+		public void SetCharacter(SpriteSheet newCharacter)
+		{
+			var (x, y) = (_character.X, _character.Y);
+			_character = newCharacter;
 			_character.SetTile(x,y);
 		}
 

@@ -105,6 +105,7 @@ namespace FinalFantasyV
 				var tex = FF5.NPCTexture;
 				
 				Vector2 offset = Vector2.Zero;
+				if (gid == 2) offset = new Vector2(0, 785);
 				if (gid == 30) offset = new Vector2(0, 752-8);
 				if (gid == 36) offset = new Vector2(0, 640 + 4);			 // Barkeep
 				if (gid == 37) offset = new Vector2(120, 624);				// Red Sheep
@@ -160,10 +161,11 @@ namespace FinalFantasyV
 					w[i].IsVisible = false;
 				}
 				
-				if (map.Npcs[i].direction == 0) w[i].Face(ECharacterMove.Up);
-				if (map.Npcs[i].direction == 1) w[i].Face(ECharacterMove.Right);
-				if (map.Npcs[i].direction == 2) w[i].Face(ECharacterMove.Down);
-				if (map.Npcs[i].direction == 3) w[i].Face(ECharacterMove.Left);
+				//if (map.Npcs[i].direction == 0) w[i].Face(ECharacterMove.Up);
+				//if (map.Npcs[i].direction == 1) w[i].Face(ECharacterMove.Right);
+				//if (map.Npcs[i].direction == 2) w[i].Face(ECharacterMove.Down);
+				//if (map.Npcs[i].direction == 3) w[i].Face(ECharacterMove.Left);
+				w[i].Face((ECharacterMove)map.Npcs[i].direction);
 			}
 
 			return w;

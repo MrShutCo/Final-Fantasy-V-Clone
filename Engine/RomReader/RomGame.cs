@@ -170,6 +170,8 @@ public class RomGame
     {
         var b= Map.BattleGroups[id];
         b.LoadMonsterData(gd, this);
+        var monsterData = b.MonsterIds.Select(id => Map.LoadMonsterStats(br, offset, id));
+        b.SetUnits(monsterData.ToList());
         return b;
     }
 

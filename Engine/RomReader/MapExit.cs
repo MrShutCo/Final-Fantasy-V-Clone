@@ -59,8 +59,8 @@ public class MapExit
     }
 
     public int GetMapId() => (int)(0x01FF & mapId);
-    public byte GetDestX() => (byte)(destinationX & 0x3F);
-    public byte GetDestY() => (byte)(destinationY & 0x3F);
+    public byte GetDestX() => mapId >= 5 ? (byte)(destinationX & 0x3F) : destinationX;
+    public byte GetDestY() => mapId >= 5 ? (byte)(destinationY & 0x3F) : destinationY;
 
     /**
         * injectExit
