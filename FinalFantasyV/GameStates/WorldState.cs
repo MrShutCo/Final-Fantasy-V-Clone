@@ -40,9 +40,6 @@ namespace FinalFantasyV.GameStates
 
         public WorldState(ContentManager cm, RomGame romGame)
 		{
-            // Bartz: new Vector2(365, 452)
-            // Lenna: new Vector2(365-1, 452-7)
-            // Galuf new Vector2(365-4, 452-13)
             _newEvent = new();
             _menu = new();
             WorldCharacter = new WorldCharacter(FF5.BartzSprite, new Vector2(32*16, 51*16));
@@ -55,11 +52,11 @@ namespace FinalFantasyV.GameStates
             
             // World Map
             //ChangeMap(0, new Vector2(156 * 16, 150 * 16));
-            ChangeMap(17, new Vector2(12 *16, 20*16));
+            //ChangeMap(17, new Vector2(12 *16, 20*16));
             
             // Tule
             //ChangeMap(32, new Vector2(32 * 16, 45 * 16));
-            
+            ChangeMap(33, new Vector2(12 * 16, 20 * 16));
         }
 
         public void ChangeMap(int newMapId, Vector2 newPos)
@@ -156,31 +153,11 @@ namespace FinalFantasyV.GameStates
                 return;
             }
 
-            var tilePos = WorldCharacter.GetTilePosition();
-            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            if (!TextPopup.IsActive)
             {
-                if (_walls[(int)tilePos.X-1, (int)tilePos.Y].PassableRight && CanWalkHere((int)tilePos.X-1, (int)tilePos.Y))
-                    WorldCharacter.Move(ECharacterMove.Left, WorldCharacter.FastWalkingSpeed);
-                WorldCharacter.Face(ECharacterMove.Left);
+                Move();
             }
-            if (Keyboard.GetState().IsKeyDown(Keys.Right))
-            {
-                if (_walls[(int)tilePos.X+1, (int)tilePos.Y].PassableLeft && CanWalkHere((int)tilePos.X+1, (int)tilePos.Y))
-                    WorldCharacter.Move(ECharacterMove.Right,WorldCharacter.FastWalkingSpeed);
-                WorldCharacter.Face(ECharacterMove.Right);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.Up))
-            {
-                if (_walls[(int)tilePos.X, (int)tilePos.Y-1].PassableDown && CanWalkHere((int)tilePos.X, (int)tilePos.Y-1))
-                    WorldCharacter.Move(ECharacterMove.Up,WorldCharacter.FastWalkingSpeed);
-                WorldCharacter.Face(ECharacterMove.Up);
-            }
-            if (Keyboard.GetState().IsKeyDown(Keys.Down))
-            {
-                if (_walls[(int)tilePos.X, (int)tilePos.Y+1].PassableUp && CanWalkHere((int)tilePos.X, (int)tilePos.Y+1))
-                    WorldCharacter.Move(ECharacterMove.Down,WorldCharacter.FastWalkingSpeed);
-                WorldCharacter.Face(ECharacterMove.Down);
-            }
+            
 
             if (Keyboard.GetState().IsKeyDown(Keys.P))
             {
@@ -207,21 +184,66 @@ namespace FinalFantasyV.GameStates
 
             if (InputHandler.KeyPressed(Keys.Space))
             {
-                var facingTilePos = WorldCharacter.GetPositionFacing();
-                foreach (var obj in Objects)
-                {
-                    if (obj is WorldNPC && obj.Position == new Vector2(facingTilePos.X * 16, facingTilePos.Y * 16))
-                    {
-                        //obj = (obj as WorldNPC).;
-                        //_textPopup.ShowText();
-                    }
-                }
-                
+                TalkTo();
             }
 
             if (InputHandler.KeyPressed(Keys.Enter))
                 stateStack.Push("menu", ps);
             if (Keyboard.GetState().IsKeyDown(Keys.B)) stateStack.Push("battle", ps);
+        }
+
+        private void TalkTo()
+        {
+            var facingTilePos = WorldCharacter.GetPositionFacing();
+            if (_walls[(int)facingTilePos.X, (int)facingTilePos.Y].CanMoveInDirection((int)WorldCharacter.Facing()) == false)
+            {
+                facingTilePos = WorldCharacter.GetPositionFacing(2);
+            }
+            foreach (var obj in Objects)
+            {
+                if (obj is WorldNPC && obj.Position == new Vector2(facingTilePos.X * 16, facingTilePos.Y * 16))
+                {
+                    if (TextPopup.IsActive)
+                    {
+                        TextPopup.NextDialogue();
+                    }
+                    else
+                    {
+                        var npc = (obj as WorldNPC);
+                        TextPopup.ShowText(npc.GetDialogue());
+                    }
+                       
+                }
+            }
+        }
+
+        private void Move()
+        {
+            var tilePos = WorldCharacter.GetTilePosition();
+            if (Keyboard.GetState().IsKeyDown(Keys.Left))
+            {
+                if (_walls[(int)tilePos.X-1, (int)tilePos.Y].PassableRight && CanWalkHere((int)tilePos.X-1, (int)tilePos.Y))
+                    WorldCharacter.Move(ECharacterMove.Left, WorldCharacter.FastWalkingSpeed);
+                WorldCharacter.Face(ECharacterMove.Left);
+            }
+            else if (Keyboard.GetState().IsKeyDown(Keys.Right))
+            {
+                if (_walls[(int)tilePos.X+1, (int)tilePos.Y].PassableLeft && CanWalkHere((int)tilePos.X+1, (int)tilePos.Y))
+                    WorldCharacter.Move(ECharacterMove.Right,WorldCharacter.FastWalkingSpeed);
+                WorldCharacter.Face(ECharacterMove.Right);
+            }
+            else if (Keyboard.GetState().IsKeyDown(Keys.Up))
+            {
+                if (_walls[(int)tilePos.X, (int)tilePos.Y-1].PassableDown && CanWalkHere((int)tilePos.X, (int)tilePos.Y-1))
+                    WorldCharacter.Move(ECharacterMove.Up,WorldCharacter.FastWalkingSpeed);
+                WorldCharacter.Face(ECharacterMove.Up);
+            }
+            else if (Keyboard.GetState().IsKeyDown(Keys.Down))
+            {
+                if (_walls[(int)tilePos.X, (int)tilePos.Y+1].PassableUp && CanWalkHere((int)tilePos.X, (int)tilePos.Y+1))
+                    WorldCharacter.Move(ECharacterMove.Down,WorldCharacter.FastWalkingSpeed);
+                WorldCharacter.Face(ECharacterMove.Down);
+            }
         }
 
         public void ShowDialogue(string text)

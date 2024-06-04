@@ -13,7 +13,7 @@ namespace Final_Fantasy_V.Models
 
 	public class Character : Unit
 	{
-        public int Strength { get { return CurrentJob.Strength + HeroStrength(); }}
+        public int Strength { get { return CurrentJob.Strength + HeroStrength();  }}
         public int Agility { get { return CurrentJob.Agility + HeroAgility(); }}
         public int Vitality { get { return CurrentJob.Vitality + HeroVitality(); }}
         public new int MagicPower { get { return CurrentJob.Magic + HeroMagic(); } }
@@ -47,12 +47,11 @@ namespace Final_Fantasy_V.Models
             Head = Utility.HeadGear["None"];
             Body = Utility.BodyWear["None"];
             Accessory = Utility.Accesories["None"];
-            Abilities = new Ability[] { };
+            Abilities = [];
             Job = EJob.Freelancer;
             CurrHP = MaxHP();
             CurrMP = MaxMP();
 		}
-        
 
         public int MaxHP() => Utility.GetLevel(Level).Hp * (Vitality + 32) / 32;
         public int MaxMP() => Utility.GetLevel(Level).Mp * (MagicPower + 32) / 32;

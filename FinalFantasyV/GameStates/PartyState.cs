@@ -39,7 +39,7 @@ namespace FinalFantasyV.GameStates
             Inventory = new List<Item>
             {
                 
-                RomData.GetWeaponByName("[Swrd]Broad"),
+                /*RomData.GetWeaponByName("[Swrd]Broad"),
                 RomData.GetWeaponByName("[Knif]Dagger"),
                 RomData.GetWeaponByName("[Knif]Kunai"),
                 RomData.GetWeaponByName("[Knif]Knife"),
@@ -48,11 +48,11 @@ namespace FinalFantasyV.GameStates
                 RomData.GetGearByName("[Armr]Bronze"),
                 RomData.GetGearByName("[Suit]Leather"),
                 RomData.GetGearByName("[Shoe]Red"),
-                RomData.GetGearByName("[Ring]Wall"),
+                RomData.GetGearByName("[Ring]Wall"),*/
             };
             
-            AddItem(RomData.GetConsumableByName("Potion"), 10);
-            AddItem(RomData.GetConsumableByName("HiPotion"), 10);
+            //AddItem(RomData.GetConsumableByName("Potion"), 10);
+            //AddItem(RomData.GetConsumableByName("HiPotion"), 10);
         }
 
         public void Swap(int i, int j)

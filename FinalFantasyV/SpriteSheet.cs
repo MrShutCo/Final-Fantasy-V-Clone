@@ -106,6 +106,11 @@ namespace FinalFantasyV
 				
 				Vector2 offset = Vector2.Zero;
 				if (gid == 2) offset = new Vector2(0, 785);
+				if (gid == 15 || gid == 16)
+				{
+					offset = new Vector2(365, 452 - 11);
+					tex = FF5.Faris;
+				}
 				if (gid == 30) offset = new Vector2(0, 752-8);
 				if (gid == 36) offset = new Vector2(0, 640 + 4);			 // Barkeep
 				if (gid == 37) offset = new Vector2(120, 624);				// Red Sheep
@@ -154,18 +159,23 @@ namespace FinalFantasyV
 				Vector2 pos = new Vector2(map.Npcs[i].x * 16, map.Npcs[i].y * 16);
 				
 				w[i] = new WorldNPC(new SpriteSheet(tex, 16, 16, offset, new Vector2(4,4)), pos, map.Npcs[i]);
-
-				//if (gid >= 78 && gid <= 80) w[i].IsVisible = false;
+				
 				if (!map.Npcs[i].IsVisibleOnStartup())
 				{
 					w[i].IsVisible = false;
 				}
 				
-				//if (map.Npcs[i].direction == 0) w[i].Face(ECharacterMove.Up);
-				//if (map.Npcs[i].direction == 1) w[i].Face(ECharacterMove.Right);
-				//if (map.Npcs[i].direction == 2) w[i].Face(ECharacterMove.Down);
-				//if (map.Npcs[i].direction == 3) w[i].Face(ECharacterMove.Left);
-				w[i].Face((ECharacterMove)map.Npcs[i].direction);
+				// Special Faris images
+				if (gid == 15)
+				{
+					w[i].StopAnimation();
+					if (map.Npcs[i].direction == 0) w[i].SetCharacterSprite(6,1, false);
+					if (map.Npcs[i].direction == 1) w[i].SetCharacterSprite(7,1, false);
+				}
+				else
+				{
+					w[i].Face((ECharacterMove)map.Npcs[i].direction);
+				}
 			}
 
 			return w;

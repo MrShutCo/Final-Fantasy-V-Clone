@@ -816,8 +816,19 @@ namespace Engine.RomReader
                 PassableUp = passableUp;
                 PassableDown = passableDown;
             }
+            
+            
+            public bool CanMoveInDirection(int direction)
+            {
+                if (direction == 0) return PassableDown;
+                if (direction == 1) return PassableLeft;
+                if (direction == 2) return PassableUp;
+                if (direction == 3) return PassableRight;
+                return false;
+            }
+
         }
-        
+
         public static Wall[,] GetWalls(List<byte> tileMap, List<byte> tileProperties, List<byte> tilePropertiesMask)
         {
             

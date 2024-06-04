@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Engine.RomReader;
+using Engine.RomReader.SaveReader;
 using Final_Fantasy_V.Models;
 using FinalFantasyV.Events;
 using FinalFantasyV.GameStates;
@@ -53,7 +54,8 @@ public class FF5 : Game
     private Texture2D tex;
     private SpriteFont font;
 
-    private RomGame _romGame; 
+    private RomGame _romGame;
+    private SaveReader _saveReader; 
     
     public FF5()
     {
@@ -82,9 +84,11 @@ public class FF5 : Game
             var offset = RomGame.CheckSNESHeader(br);
             RomData.Instantiate(br, offset.Item2);
         }
-
-
+        
         _romGame = new RomGame();
+        _saveReader = new SaveReader();
+        _saveReader.LoadSaveSlot(0);
+        
         partyState = new PartyState(Content);
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         stateStack = new StateStack();
@@ -107,6 +111,10 @@ public class FF5 : Game
         FarisSprite = new SpriteSheet(Faris, 16, 16, new Vector2(365, 452), new Vector2(4, 4));
         ChocoboSprite = new SpriteSheet(NPCTexture, 16, 16, new Vector2(142, 584), new Vector2(4, 4));
         
+        NewEventManager.EventFlags = _saveReader.ParseEventFlags();
+        partyState.Inventory = _saveReader.LoadInventory();
+        
+        
         stateStack.Add("world", new WorldState(Content, _romGame));
         stateStack.Add("menu", new CharacterMenu(Content));
         stateStack.Add("battle", new BattleState(Content, _romGame));
@@ -118,11 +126,11 @@ public class FF5 : Game
         stateStack.Push("world", partyState);
 
         // Cutscene shortcut
-        NewEventManager.EventFlags[510] = true; // Event 38
-        NewEventManager.EventFlags[476] = true; // Event 38
+        //NewEventManager.EventFlags[510] = true; // Event 38
+        //NewEventManager.EventFlags[476] = true; // Event 38
         //NewEventManager.EventFlags[510] = false; // Huh? Event 39
-        NewEventManager.EventFlags[446] = true;
-        NewEventManager.EventFlags[16] = true;
+        //NewEventManager.EventFlags[446] = true;
+        //NewEventManager.EventFlags[16] = true;
 
     }
 

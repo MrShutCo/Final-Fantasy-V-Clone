@@ -35,10 +35,10 @@ public class TextPopup
         SplitUpText(text);
     }
 
-    public void SplitUpText(string texts)
+    private void SplitUpText(string texts)
     {
         var s = texts.Split("[EOL]");
-        Console.WriteLine(s);
+        //Console.WriteLine(s);
         text = new();
         for (int i = 0; i < s.Length; i += 4)
         {

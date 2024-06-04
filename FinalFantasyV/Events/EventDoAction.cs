@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FinalFantasyV.GameStates;
+using FinalFantasyV.Sprites;
 using Microsoft.Xna.Framework;
 
 namespace FinalFantasyV.Events;
@@ -120,17 +121,21 @@ public class EventDoAction : IGameEvent
 
     public void OnStart(PartyState partyState, WorldState ws)
     {
-        
         PrintAction();
         
         var charToAct = ws.WorldCharacter;
+        var speed = WorldCharacter.NormalWalkingSpeed;
         if (!IsParty)
+        {
             charToAct = ws.Objects[_objectId];
+            speed = (charToAct as WorldNPC).Speed;
+        }
 
-        if (_action == 0x1) charToAct.Move(ECharacterMove.Up, WorldCharacter.NormalWalkingSpeed);
-        else if (_action == 0x2) charToAct.Move(ECharacterMove.Right, WorldCharacter.NormalWalkingSpeed);
-        else if (_action == 0x3) charToAct.Move(ECharacterMove.Down, WorldCharacter.NormalWalkingSpeed);
-        else if (_action == 0x4) charToAct.Move(ECharacterMove.Left, WorldCharacter.NormalWalkingSpeed);
+        if (_action == 0x1) charToAct.Move(ECharacterMove.Up, speed);
+        else if (_action == 0x2) charToAct.Move(ECharacterMove.Right, speed);
+        else if (_action == 0x3) charToAct.Move(ECharacterMove.Down, speed);
+        else if (_action == 0x4) charToAct.Move(ECharacterMove.Left, speed);
+        
 
         else if (_action == 9) charToAct.IsVisible = true;
         else if (_action == 10) charToAct.IsVisible = false;

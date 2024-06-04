@@ -24,8 +24,9 @@ public class NPC
     private static readonly HashSet<int> InvisibleActionId = [
         128, // Local control 
         0, 
-        119,
+        //119,
         95, //Chocobo at Tycoon Meteor
+        87, // Faris in Pub 1
         154 // Local control
     ];
     private static readonly HashSet<int> VisibleActionIds = [];

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Engine.RomReader;
+using FinalFantasyV.Utilities;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
@@ -10,42 +12,51 @@ namespace FinalFantasyV
 {
 	public enum ECharacterMove
 	{
-		Down,Left,Right,Up,Special1,Special2,Special3,Special4
+		Up,Right,Down,Left,Special1,Special2,Special3,Special4,Jump1,Jump2
 	}
 
 	public class Tween
 	{
-		Vector2 _starting;
-		Vector2 _end;
+		private Vector2[] _positions;
 		double _timeMilliseconds;
 		double _timeElapsed;
 		Vector2[] _tileSheetSprites;
 
         public Tween(Vector2 starting, Vector2 end, double timeMilliseconds, Vector2[] tileSheetSprites)
         {
-            _starting = starting;
-            _end = end;
+	        _positions = [starting, end];
             _timeMilliseconds = timeMilliseconds;
 			_tileSheetSprites = tileSheetSprites;
         }
+        
+        public Tween(Vector2[] positions, double timeMilliseconds, Vector2[] tileSheetSprites)
+        {
+	        _positions = positions;
+	        _timeMilliseconds = timeMilliseconds;
+	        _tileSheetSprites = tileSheetSprites;
+        }
+
+        int GetIndexOf(int segments) => (int)(_timeElapsed) / (int)(_timeMilliseconds / (segments));
 
 		public (Vector2, Vector2) Lerp(GameTime gt)
 		{
 			_timeElapsed += gt.ElapsedGameTime.Milliseconds;
 			_timeElapsed = Math.Min(_timeElapsed, _timeMilliseconds);
-			var lerp = Vector2.Lerp(_starting, _end, (float)(_timeElapsed / _timeMilliseconds));
+			var posIdx = Math.Min(GetIndexOf(_positions.Length), _positions.Length-2);
+			var lerp = Vector2.Lerp(_positions[posIdx], _positions[posIdx+1], (float)(_timeElapsed / _timeMilliseconds));
 			if (_tileSheetSprites != null)
 			{
 				lerp.X = (int)lerp.X;
 				lerp.Y = (int)lerp.Y;
-				int tileIndex = (int)(_timeElapsed) / (int)(_timeMilliseconds / (_tileSheetSprites.Length - 1));
+				//int tileIndex = (int)(_timeElapsed) / (int)(_timeMilliseconds / (_tileSheetSprites.Length - 1));
+				var tileIndex = GetIndexOf(_tileSheetSprites.Length-1);
 				return (lerp, _tileSheetSprites[tileIndex]);
 			}
 
 			return (lerp, lerp);
 		}
 
-		public bool IsDone(Vector2 pos) => pos == _end;  
+		public bool IsDone(Vector2 pos) => pos == _positions.Last();  
     }
 
 	public class WorldCharacter
@@ -54,7 +65,6 @@ namespace FinalFantasyV
 		Tween _tween;
 		public bool IsMoving { get; set; }
 		public bool IsVisible { get; set; }
-		bool _isOddStepCount = true;
 		bool _isMirrored;
 
 		public const int FastWalkingSpeed = 125;
@@ -63,22 +73,32 @@ namespace FinalFantasyV
 		public const int SlowestWalkingSpeed = 1000;
 
 		public event Action DoneMovement;
-		protected ECharacterMove Facing;
-
+		
         public Vector2 Position;
-        protected SpriteSheet _character;
+        protected SpriteSheet Character;
+
+        protected Animation? VisualAnimation;
+        
 		public WorldCharacter(SpriteSheet spriteSheet, Vector2 pos)
 		{
-			_character = spriteSheet;
+			Character = spriteSheet;
 			Position = pos;
 			IsVisible = true;
 		}
 
 		public Vector2 GetTilePosition() => Position / 16;
+		
+		public ECharacterMove Facing()
+		{
+			if (_isMirrored && Character.X == 4) return ECharacterMove.Right;
+			if (!_isMirrored && Character.X == 4) return ECharacterMove.Left;
+			if (Character.X == 2) return ECharacterMove.Up;
+			if (Character.X == 0) return ECharacterMove.Down;
+			return ECharacterMove.Left;
+		}
 
 		public virtual void Update(GameTime gt)
 		{
-			
 			if (IsMoving)
 			{
 				var animation = Vector2.Zero;
@@ -88,14 +108,21 @@ namespace FinalFantasyV
                     IsMoving = false;
                     DoneMovement?.Invoke();
                 }
-                _character.SetTile((int)animation.X, (int)animation.Y);
             }
+
+			if (VisualAnimation != null && VisualAnimation.IsActive)
+			{
+				VisualAnimation.Update(gt);
+				var frame = VisualAnimation.GetAnimationFrame();
+				Character.SetTile((int)frame.Item1.X, (int)frame.Item1.Y);
+				//_isMirrored = frame.isFlipped;
+			}
 		}
 
         public void Draw(SpriteBatch sb)
         {
 	        if (IsVisible)
-				_character.Draw(sb, Position, _isMirrored);
+				Character.Draw(sb, Position, _isMirrored);
         }
 
 		public void Face(ECharacterMove move)
@@ -105,69 +132,91 @@ namespace FinalFantasyV
 			{
 				case ECharacterMove.Left:
 					_isMirrored = false;
-					_character.SetTile(4, 0);
+					Character.SetTile(4, 0);
 					break;
 				case ECharacterMove.Right:
 					_isMirrored = true;
-					_character.SetTile(4, 0);
+					Character.SetTile(4, 0);
 					break;
 				case ECharacterMove.Up:
-					_character.SetTile(2, 0);
+					Character.SetTile(2, 0);
 					break;
 				case ECharacterMove.Down:
-					_character.SetTile(0, 0);
+					Character.SetTile(0, 0);
 					break;
 				case ECharacterMove.Special1:
-					_character.SetTile(6, 0);
+					Character.SetTile(6, 0);
 					break;
 			}
 
 
-			Facing = move;
+			//Facing = move;
 		}
 
-		public Vector2 GetPositionFacing()
+		public Vector2 GetPositionFacing(int distance=1)
 		{
 			var tilePos = GetTilePosition();
-			return Facing switch
+			return Facing() switch
 			{
-				ECharacterMove.Down => tilePos + new Vector2(0, 1),
-				ECharacterMove.Left => tilePos + new Vector2(-1, 0),
-				ECharacterMove.Right => tilePos + new Vector2(1,0),
-				ECharacterMove.Up => tilePos + new Vector2(0, -1),
+				ECharacterMove.Down => tilePos + new Vector2(0, distance),
+				ECharacterMove.Left => tilePos + new Vector2(-distance, 0),
+				ECharacterMove.Right => tilePos + new Vector2(distance,0),
+				ECharacterMove.Up => tilePos + new Vector2(0, -distance),
 				_ => throw new ArgumentOutOfRangeException()
 			};
 		}
 
-		public void Move(ECharacterMove move, int milliseconds)
+		public virtual void Move(ECharacterMove move, int milliseconds, bool playAnimations=true)
 		{
 			if (move == ECharacterMove.Left && !IsMoving)
 			{
                 IsMoving = true;
-                _isMirrored = false;
                 _tween = new Tween(Position, Position + new Vector2(-16,0), milliseconds, new Vector2[] {new(4,0), new(5,0), new(4,0) });
-            }
+                
+                if (!playAnimations) return;
+                _isMirrored = false;
+                VisualAnimation = new Animation([new Vector2(4, 0), new(5, 0), new(4, 0)], [milliseconds/2,milliseconds/2,0], false);
+                VisualAnimation.StartAnimation();
+			}
 			if (move == ECharacterMove.Right && !IsMoving)
 			{
                 IsMoving = true;
-				_isMirrored = true;
                 _tween = new Tween(Position, Position + new Vector2(16, 0), milliseconds, new Vector2[] { new(4, 0), new(5, 0), new(4, 0) });
+                
+                if (!playAnimations) return;
+                _isMirrored = true;
+                VisualAnimation = new Animation([new Vector2(4, 0), new(5, 0), new(4, 0)], [milliseconds/2,milliseconds/2,0], false);
+                VisualAnimation.StartAnimation();
             }
             if (move == ECharacterMove.Up && !IsMoving)
 			{
                 IsMoving = true;
                 _tween = new Tween(Position, Position + new Vector2(0, -16), milliseconds, new Vector2[] { new(2,0), new(3, 0), new(2, 0) });
+                
+                if (!playAnimations) return;
+                VisualAnimation = new Animation([new Vector2(2, 0), new(3, 0), new(2, 0)], [milliseconds/2,milliseconds/2,0], false);
+                VisualAnimation.StartAnimation();
             }
 			
 			if (move == ECharacterMove.Down && !IsMoving)
 			{
                 IsMoving = true;
                 _tween = new Tween(Position, Position + new Vector2(0, 16), milliseconds, new Vector2[] { new(0, 0), new(1, 0), new(0,0) });
+                
+                if (!playAnimations) return;
+                VisualAnimation = new Animation([new Vector2(0, 0), new(1, 0), new(0, 0)], [milliseconds/2,milliseconds/2,0], false);
+                VisualAnimation.StartAnimation();
             }
         }
+		
+		
+		
+		public void StopAnimation() => VisualAnimation.StopAnimation();
 
 		public void SetAction(int action)
 		{
+			if (action == 11 && VisualAnimation != null)
+				VisualAnimation.IsActive = !VisualAnimation.IsActive;
 			if (action == 48)
 				SetCharacterSprite(0, 3, true);
 			else if (action == 49)
@@ -241,14 +290,14 @@ namespace FinalFantasyV
 		public void SetCharacterSprite(int x, int y, bool isMirrored)
 		{
 			_isMirrored = isMirrored;
-			_character.SetTile(x,y);
+			Character.SetTile(x,y);
 		}
 
 		public void SetCharacter(SpriteSheet newCharacter)
 		{
-			var (x, y) = (_character.X, _character.Y);
-			_character = newCharacter;
-			_character.SetTile(x,y);
+			var (x, y) = (Character.X, Character.Y);
+			Character = newCharacter;
+			Character.SetTile(x,y);
 		}
 
 		public bool CanWalkHere(ECharacterMove move, List<WorldCharacter> objects, MapManager.Wall[,] walls)
