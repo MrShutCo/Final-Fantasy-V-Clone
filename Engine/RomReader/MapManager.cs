@@ -282,6 +282,7 @@ namespace Engine.RomReader
             br.BaseStream.Position = 0x100000 + offset + monsterIndex * 32;
             var data = br.ReadBytes(32);
 
+            Console.WriteLine(_monsterNames[monsterIndex]);
             return new Enemy
             {
                 Speed = data[0],
@@ -2935,6 +2936,12 @@ namespace Engine.RomReader
 
         #endregion
 
+        #region Monster Data
+        
+        
+        
+        #endregion
+        
         #region Monster Graphics
     
         public Monster LoadMonster(GraphicsDevice gd, BinaryReader br, int headerOffset, int monsterId)
@@ -2943,16 +2950,16 @@ namespace Engine.RomReader
             var monsterData = br.ReadBytes(5);
             bool is4BPP = ((monsterData[0] & 0b1000_0000) >> 7) == 0;
             int tilesetId = monsterData[1] + (monsterData[0] & 0b0111_1111) * 0x100;
-            //tilesetId = is4BPP ? tilesetId * 32 : tilesetId * 24;
             
             bool is128x128 = ((monsterData[2] & 0b1000_0000) >> 7) == 1;
             int tilesetAddress = 0x150000 + headerOffset + tilesetId * 8;
             byte formId = monsterData[4];
 
             var paletteId = (monsterData[3] + (monsterData[2] & 0b0000_0011) * 0x100);
-            br.BaseStream.Position = 0x0ED000 + 8 * paletteId;
+            br.BaseStream.Position = 0x0ED000 + headerOffset + 16 * paletteId;
             var paletteData = is4BPP ? br.ReadBytes(32) : br.ReadBytes(16);
             var palette = Palettes.GetColourPalette(paletteData);
+
 
             br.BaseStream.Position = is128x128 ? 0x10D334 + 32 * formId : 0x10D004 + 8 * formId;
             var form = is128x128 ? br.ReadBytes(32) : br.ReadBytes(8);
@@ -2969,6 +2976,7 @@ namespace Engine.RomReader
 
             var newPal = palette.Select(p => Palettes.Convert(p)).ToArray();
             int tiles = NumberOfTiles(form);
+            newPal[0] = newPal[0].WithAlpha(0);
             for (int i = 0; i < tiles; i++)
             {
                 if (is4BPP)
@@ -2978,10 +2986,10 @@ namespace Engine.RomReader
                 }
                 else
                 {
-                    //var tile = Decode3Bpp(br.ReadBytes(24));
-                    Image<Rgba32> t = Transformations.transform3bpp(br.ReadBytes(24).ToList(), 0, 512, newPal);
-                    tileTex.Add(ConvertToTex(gd, t));
-                    //ileTex.Add(Palettes.TextureFromData(gd, tile, palette));
+                    var tile = Decode3Bpp(br.ReadBytes(24));
+                    //Image<Rgba32> t = Transformations.transform3bpp(br.ReadBytes(24).ToList(), 0, 512, newPal);
+                    //tileTex.Add(ConvertToTex(gd, t));
+                    tileTex.Add(Palettes.TextureFromData(gd, tile, palette));
                 }
             }
 

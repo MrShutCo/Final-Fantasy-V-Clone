@@ -31,7 +31,7 @@ namespace FinalFantasyV.GameStates
             inputHandler = new InputHandler();
         }
 
-        public abstract void OnEnter(PartyState ps);
+        public abstract void OnEnter(PartyState ps, object data);
 
         public void OnExit()
         {
@@ -64,10 +64,9 @@ namespace FinalFantasyV.GameStates
 
         public virtual void Update(GameTime gameTime, PartyState ps)
         {
+            if (menuSelectors == null) return;
             foreach (var m in menuSelectors)
                 m.Update(gameTime);
-
-
         }
 
         protected int getCursorX() => (int)menuSelectors[currSelector].GetXyOfCursor().X;

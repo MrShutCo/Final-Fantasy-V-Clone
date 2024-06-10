@@ -36,7 +36,7 @@ public class JobMenu : MenuState
         };
     }
 
-    public override void OnEnter(PartyState ps)
+    public override void OnEnter(PartyState ps, object _)
     {
         var h = ps.Slots[slotIndex];
         Menu.SetBox(tileData, 1,1,30,4);

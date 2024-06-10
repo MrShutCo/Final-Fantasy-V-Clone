@@ -13,7 +13,7 @@ public class MagicMenu : MenuState
         menuSelectors = new MenuSelector[] { };
     }
 
-    public override void OnEnter(PartyState ps)
+    public override void OnEnter(PartyState ps, object _)
     {
         Menu.SetBox(tileData, 1, 1, 7, 3);
         Menu.SetBox(tileData, 8, 1, 23, 3);

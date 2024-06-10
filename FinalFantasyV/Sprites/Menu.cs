@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -27,42 +28,72 @@ namespace FinalFantasyV.Sprites
 		}
 
 
-        public static void DrawString(SpriteBatch sb, SpriteSheet menuData, string text, Vector2 startingPosition)
+        public static void DrawString(SpriteBatch sb, SpriteSheet menuData, string text, Vector2 startingPosition, bool ltr = true)
         {
 	        var tiles = GetTilesForText(text);
 	        var startingX = startingPosition.X;
 	        for (int i = 0; i < tiles.Count; i++)
 	        {
-		        if (tiles[i] == NewLineIndex)
+		        var index = ltr ? i : tiles.Count - 1 - i;
+		        if (tiles[index] == NewLineIndex)
 		        {
 			        startingPosition.X = startingX;
 			        startingPosition.Y += 16;
 			        continue;
 		        }
-		        var startingCoord = menuData.IndexOf(tiles[i]);
+		        var startingCoord = menuData.IndexOf(tiles[index]);
 		        menuData.Draw(sb, new Rectangle((int)startingCoord.X, (int)startingCoord.Y, menuData.Width, menuData.Height), startingPosition);
-		        startingPosition.X += 8;
+		        startingPosition.X += ltr ? 8 : -8;
 	        }
 		}
 
-		public static void DrawManyString(SpriteBatch sb, SpriteSheet menuData, string[] text, Vector2 startingPosition, int yDelta)
+		public static void DrawManyString(SpriteBatch sb, SpriteSheet menuData, string[] text, Vector2 startingPosition, int yDelta, bool ltr = true)
 		{
 			for (int i = 0; i < text.Length; i++)
 			{
-				DrawString(sb, menuData, text[i], startingPosition + new Vector2(0, yDelta * i));
+				DrawString(sb, menuData, text[i], startingPosition + new Vector2(0, yDelta * i), ltr);
 			}
 		}
 
 		public static string PadNumber(int num, int pads) => num.ToString().PadLeft(pads, ' ');
 
-		public static void DrawText(Map map, int x, int y, string text)
+		public static void DrawText(Map map, int x, int y, string text, int layer = 0, bool isLeftToRight = true)
 		{
 			var offset = 0;
 			var tiles = GetTilesForText(text);
-			for (int i = 0; i < tiles.Count; i++)
+			if (isLeftToRight)
 			{
-				map.SetTileAt(0, x+offset, y, tiles[i]+1);
-				offset++;
+				for (int i = 0; i < tiles.Count; i++)
+				{
+					map.SetTileAt(layer, x + offset, y, tiles[i] + 1);
+					offset++;
+				}
+			}
+			else
+			{
+				offset = tiles.Count - 1;
+				for (int i = tiles.Count; i >= 0; i--)
+				{
+					map.SetTileAt(layer, x + offset, y, tiles[i] + 1);
+					offset--;
+				}
+			}
+		}
+
+		public static void DrawATBBar(Map map, int x, int y, byte atb)
+		{
+			map.SetTileAt(0, x, y, 11);
+			map.SetTileAt(0, x+5, y, 12);
+			
+			for (int i = 0; i < 4; i++)
+			{
+				if (atb < i*64) map.SetTileAt(0, x+i+1, y, 13);
+				else
+				{
+					// atb >= i*64
+					var amount = Math.Min((atb - i * 64) / 8, 7);
+					map.SetTileAt(0, x+1+i, y, 216+amount);
+				}
 			}
 		}
 
@@ -81,6 +112,7 @@ namespace FinalFantasyV.Sprites
 				}
 			}
 
+			text = text.Replace("\t", "    ");
 			text = text.Replace("[FF]", "");
 			text = text.Replace("(Bartz)", "Bartz");
 			text = text.Replace("[Wait]", ""); // TODO: tyler add an actual wait in here
@@ -158,8 +190,8 @@ namespace FinalFantasyV.Sprites
 			return 0;
 		}
 
-		private static List<char> Chars = ['\'', '"', ':', ';', ',', '(',')','/','!','?','.','%'];
-		private static List<int> CharIndices = [121,122,123,124,125,126,127,128,129,130,131,173];
+		private static List<char> Chars = ['\'', '"', ':', ';', ',', '(',')','/','!','?','.','%','{','}'];
+		private static List<int> CharIndices = [121,122,123,124,125,126,127,128,129,130,131,173, 126,127];
 		
 		static int getSpriteSheetIndex(char ch)
 		{

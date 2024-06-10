@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
@@ -59,6 +60,24 @@ public class Animation
 
     public (Vector2, bool isFlipped) GetAnimationFrame()
     {
-        return _frames[_activeIndex];
+        if (IsLerpingFrames)
+        {
+            var t = _timePassed / _timeInFrame[_activeIndex];
+            var vec = _frames[_activeIndex].Item1 * (1-t);
+            if (!IsRepeating && _activeIndex == _timeInFrame.Count-1)
+            {
+                
+            }
+            else
+            {
+                vec += (t * _frames[(_activeIndex + 1) % _frames.Count].Item1);
+            }
+            return (vec, _frames[_activeIndex].isFlipped);
+        }
+        else
+        {
+            return _frames[_activeIndex];
+        }
+
     }
 }

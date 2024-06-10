@@ -14,7 +14,7 @@ namespace FinalFantasyV
         protected SpriteSheet sheet;
 		public Unit Unit;
 
-		public event Action OnActionFinished;
+		public Action OnActionFinished;
 
 		const int ATBPerSecond = 50;
 
@@ -31,7 +31,8 @@ namespace FinalFantasyV
             //if (ch.Status.Haste) N1 = Math.Max(1, N1 / 2);
             //if (ch.Status.Slow) N1 = Math.Min(N1 * 2, 255);
             //ATB = (255 - N1);
-        }
+            ATB = 0;
+		}
 
         public void AdvanceATB(GameTime gameTime)
 		{

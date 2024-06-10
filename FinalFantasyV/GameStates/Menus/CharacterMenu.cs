@@ -44,7 +44,7 @@ namespace FinalFantasyV.GameStates.Menus
             _possibleNewState = "";
         }
 
-		public override void OnEnter(PartyState ps)
+		public override void OnEnter(PartyState ps, object? _)
 		{
             currSelector = 0;
             menuSelectors[currSelector].SetCursorTo(0, 0);
@@ -121,7 +121,7 @@ namespace FinalFantasyV.GameStates.Menus
 
                 // Into submenu
                 if (InputHandler.KeyPressed(Keys.Enter)  && getCursorPos().Y == 2) stateStack.Push("menu.item", ps);
-                else if (InputHandler.KeyPressed(Keys.Enter) && getCursorPos().Y == 6) stateStack.Push("menu.config", ps);
+                else if (InputHandler.KeyPressed(Keys.Enter) && getCursorPos().Y == 6) stateStack.Push("menu.bestiary", ps);
                 else if (InputHandler.KeyPressed(Keys.Enter) && getCursorPos().Y == 7) stateStack.Push("menu.save", ps);
                 else if (InputHandler.KeyPressed(Keys.Enter))
                 {
@@ -208,13 +208,16 @@ namespace FinalFantasyV.GameStates.Menus
 
         string GetNextMenuState(int index)
         {
-            if (index == 0) return "menu.job";
-            if (index == 3) return "menu.magic";
-            if (index == 4) return "menu.equipment";
-            if (index == 5) return "menu.status";
-            if (index == 6) return "menu.config";
-            if (index == 7) return "menu.save";
-            return "";
+            return index switch
+            {
+                0 => "menu.job",
+                3 => "menu.magic",
+                4 => "menu.equipment",
+                5 => "menu.status",
+                6 => "menu.bestiary",
+                7 => "menu.save",
+                _ => ""
+            };
         }
     }
 }

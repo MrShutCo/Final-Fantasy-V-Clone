@@ -74,16 +74,16 @@ namespace FinalFantasyV.GameStates
             
         }
 
-        public void OnEnter(PartyState ps)
+        public void OnEnter(PartyState ps, object _)
         {
             _tileData.SetLayerVisible(0, true);
             _tileData.SetLayerVisible(1, false);
             Ended += ActionFinished;
             _units = new List<BattleUnit>();
-            _units.Add(new BattleHero(_heros[0], ps.Slots[0], new Vector2(16*13, 13*4)));
-            _units.Add(new BattleHero(_heros[1], ps.Slots[1], new Vector2(16 * 13, 13 * 6)));
-            _units.Add(new BattleHero(_heros[2], ps.Slots[2], new Vector2(16 * 13, 13 * 8)));
-            _units.Add(new BattleHero(_heros[3], ps.Slots[3], new Vector2(16 * 13, 13 * 10)));
+            _units.Add(new BattleHero(_heros[0], ps.Slots[0], new Vector2(16*12.5f, 13*4)));
+            _units.Add(new BattleHero(_heros[1], ps.Slots[1], new Vector2(16 * 12.5f, 13 * 6)));
+            _units.Add(new BattleHero(_heros[2], ps.Slots[2], new Vector2(16 * 12.5f, 13 * 8)));
+            _units.Add(new BattleHero(_heros[3], ps.Slots[3], new Vector2(16 * 12.5f, 13 * 10)));
             _group = _romGame.GetBattleGroup(FF5.Graphics.GraphicsDevice, _groupId);
         }
 

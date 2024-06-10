@@ -8,14 +8,17 @@ namespace Engine.RomReader
         public static Microsoft.Xna.Framework.Color GetColour(byte lo, byte hi)
         {
             int color = lo + hi * 0x0100;
-            int r = ((color >> 0x0) & 0x1F) << 3;
-            int g = ((color >> 0x5) & 0x1F) << 3;
-            int b = ((color >> 0xA) & 0x1F) << 3;
-            r += r >> 5;
-            g += g >> 5;
-            b += b >> 5;
+            //int r = ((color >> 0x0) & 0x1F) << 3;
+            //int g = ((color >> 0x5) & 0x1F) << 3;
+            //int b = ((color >> 0xA) & 0x1F) << 3;
+            int r = (color & 0x001F) << 3;
+            int g = (color & 0x03E0) >> 2;
+            int b = (color & 0x7C00) >> 7;
+            //r += r >> 5;
+            //g += g >> 5;
+            //b += b >> 5;
 
-            return new Microsoft.Xna.Framework.Color((byte)r, (byte)g, (byte)b);
+            return new Microsoft.Xna.Framework.Color(r, g, b);
         }
         
         static Microsoft.Xna.Framework.Color ConvertSnesColorToRgb(byte lo, byte hi)
@@ -46,7 +49,6 @@ namespace Engine.RomReader
             var palette = new Microsoft.Xna.Framework.Color[bytes.Length / 2];
             for (int i = 0; i < bytes.Length; i += 2)
             {
-
                 palette[i / 2] = GetColour(bytes[i], bytes[i + 1]);
             }
 

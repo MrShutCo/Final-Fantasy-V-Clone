@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
@@ -11,7 +12,7 @@ namespace FinalFantasyV.GameStates
         StateStack stateStack { get; set; }
         void Update(GameTime gameTime, PartyState ps);
         void Render(SpriteBatch spriteBatch, PartyState ps);
-        void OnEnter(PartyState ps);
+        void OnEnter(PartyState ps, object? obj);
         void OnExit();
 	}
 
@@ -46,11 +47,11 @@ namespace FinalFantasyV.GameStates
             top.Render(spriteBatch, ps);
         }
 
-        public void Push(String name, PartyState ps)
+        public void Push(String name, PartyState ps, object? data = null)
         {
             IState state = mStates[name];
             mStack.Push(state);
-            state.OnEnter(ps);
+            state.OnEnter(ps, data);
         }
 
         public IState Pop()

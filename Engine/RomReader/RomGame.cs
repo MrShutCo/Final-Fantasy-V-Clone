@@ -167,6 +167,11 @@ public class RomGame
         return Map.LoadMonster(gd, br, offset, id);
     }
 
+    public Enemy GetEnemy(int id)
+    {
+        return Map.LoadMonsterStats(br, offset, id);
+    }
+
     public BattleGroup GetBattleGroup(GraphicsDevice gd, int id)
     {
         var b= Map.BattleGroups[id];
@@ -174,6 +179,112 @@ public class RomGame
         var monsterData = b.MonsterIds.Select(id => Map.LoadMonsterStats(br, offset, id));
         b.SetUnits(monsterData.ToList());
         return b;
+    }
+
+    public void CheckForOverlapping()
+    {
+        List<(int start, int end)> aiLocations = [];
+        for (int i = 0; i < 300; i++)
+        {
+            int size = 0;
+            br.BaseStream.Position = 0x109C00 + i * 2;
+            var monsterAddress = 0x100000 + offset + br.ReadByte() + br.ReadByte() * 0x100;
+            
+            br.BaseStream.Position = 0x109C00 + (i+1) * 2;
+            var monsterAddress2 = 0x100000 + offset + br.ReadByte() + br.ReadByte() * 0x100;
+            /*var (b1, b2) = (br.ReadByte(), br.ReadByte());
+            while (true)
+            {
+                if (b1 == 0xFF && b2 <= 0x80) break;
+                var t = br.ReadByte();
+                b1 = b2;
+                b2 = t;
+                
+                size++;
+            }*/
+            aiLocations.Add((monsterAddress, monsterAddress2-1));
+        }
+
+        for (int i = 0; i < aiLocations.Count; i++)
+        {
+            Console.WriteLine($"{i}: ({aiLocations[i].start} - {aiLocations[i].end})");
+        }
+        for (int i = 0; i < aiLocations.Count; i++)
+        {
+            // Is j contained inside of i?
+            for (int j = 0; j < aiLocations.Count; j++)
+            {
+                if (i == j) continue;
+                if (aiLocations[j].start >= aiLocations[i].start && aiLocations[j].start <= aiLocations[i].end)
+                {
+                    Console.WriteLine($"monster {j} is overlapping with monster {i}");
+                } 
+                else if (aiLocations[j].end >= aiLocations[i].start && aiLocations[j].end <= aiLocations[i].end)
+                {
+                    Console.WriteLine($"monster {j} is overlapping with monster {i}");
+                }
+            }
+        }
+    }
+    
+    public List<byte> GetMonsterAIBytes(int id)
+    {
+        br.BaseStream.Position = 0x109C00 + id * 2;
+        var monsterAddress = 0x100000 + offset + br.ReadByte() + br.ReadByte() * 0x100;
+        
+        br.BaseStream.Position = 0x109C00 + (id+1) * 2;
+        var monsterAddressEnd = 0x100000 + offset + br.ReadByte() + br.ReadByte() * 0x100;
+        
+        Console.WriteLine(monsterAddress.ToString("X4"));
+        br.BaseStream.Position = monsterAddress;
+        List<byte> aiBuffer = [];
+        for (int i = monsterAddress; i < monsterAddressEnd; i++)
+        {
+            aiBuffer.Add(br.ReadByte());
+        }
+
+        return aiBuffer;
+    }
+
+    public MonsterAI GetMonsterAI(int id)
+    {
+        var aiBuffer = GetMonsterAIBytes(id);
+        List<string> ai = [];
+
+        return new MonsterAI(aiBuffer);
+        
+        // Figure out what the hell is going on
+        /*for (int i = 0; i < aiBuffer.Count; i++)
+        {
+            if (aiBuffer[i] == 0xFD)
+            {
+                
+                var s = "{";
+                s += $"{GetAttackName(aiBuffer[i+1])},{GetAttackName(aiBuffer[i+2])},{GetAttackName(aiBuffer[i+3])}" + "}\n"; 
+                ai.Add(s);
+                i += 3;
+            }
+            else if (aiBuffer[i] == 0xFE && aiBuffer[i+1] != 0xFD)
+            {
+                ai.Add("React:" + GetAttackName(aiBuffer[i + 1]) + "\n\t");
+                i++;
+            }
+        }*/
+        
+        //ai.ForEach(a => Console.WriteLine(a));
+        //Console.WriteLine(Convert.ToHexString(aiBuffer.ToArray()));
+        
+        //return ai;
+    }
+
+    string GetAttackName(byte id)
+    {
+        Dictionary<byte, string> names = new Dictionary<byte, string>()
+        {
+            {0x80, "Fight"}, {0x81, "Critical"}, {0x8F, "Aero"}, {0x93, "Goblin Punch"}
+        };
+        var b = names.TryGetValue(id, out string atk);
+        return b ? atk : "0x" + id.ToString("X2");
     }
 
     public void Update(int id)
@@ -230,7 +341,7 @@ public class RomGame
             byte[] headerName = br.ReadBytes(21);
             return (Encoding.UTF8.GetString(headerName) == "FINAL FANTASY 5      ", headerOffset);
         }
-            return (false, 0);
+        return (false, 0);
     }
 
     public static List<string> AppendToExportList(BinaryReader br, Dictionary<byte, string> inputTBL, int address, int nRegisters, int registersSize, int headerOffset)

@@ -5,13 +5,10 @@ using Microsoft.Xna.Framework;
 
 namespace FinalFantasyV.Sprites
 {
-	public class BattleEnemy : BattleUnit
+	public class BattleEnemy(SpriteSheet enemySheet, Enemy enemy, Vector2 position)
+		: BattleUnit(enemySheet, enemy, position)
 	{
-		public BattleEnemy(SpriteSheet enemySheet, Enemy enemy, Vector2 position) :base(enemySheet, enemy, position)
-		{
-		}
-
-        public override void BeginAction()
+		public override void BeginAction()
         {
             Console.WriteLine($"Enemy {Unit} is acting");
         }

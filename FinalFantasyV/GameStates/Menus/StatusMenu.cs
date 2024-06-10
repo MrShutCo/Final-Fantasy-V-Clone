@@ -16,7 +16,7 @@ namespace FinalFantasyV.GameStates.Menus
         }
 
 
-        public override void OnEnter(PartyState ps)
+        public override void OnEnter(PartyState ps, object _)
         {
             Menu.SetBox(tileData, 0, 1, 32, 28);
             Menu.SetBox(tileData, 25, 0, 7, 3);

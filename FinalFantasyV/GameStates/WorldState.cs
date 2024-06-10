@@ -72,7 +72,7 @@ namespace FinalFantasyV.GameStates
         }
 
         
-        public void OnEnter(PartyState ps)
+        public void OnEnter(PartyState ps, object _)
         {
             
         }
@@ -189,7 +189,11 @@ namespace FinalFantasyV.GameStates
 
             if (InputHandler.KeyPressed(Keys.Enter))
                 stateStack.Push("menu", ps);
-            if (Keyboard.GetState().IsKeyDown(Keys.B)) stateStack.Push("battle", ps);
+            if (Keyboard.GetState().IsKeyDown(Keys.B))
+            {
+                //stateStack.Push("battle", ps);
+                stateStack.Push("newbattle", ps, _rom.GetBattleGroup(FF5.Graphics.GraphicsDevice, 3));
+            }
         }
 
         private void TalkTo()

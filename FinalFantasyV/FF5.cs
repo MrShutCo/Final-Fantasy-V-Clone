@@ -52,7 +52,7 @@ public class FF5 : Game
     PartyState partyState;
 
     private Texture2D tex;
-    private SpriteFont font;
+    public static SpriteFont Font;
 
     private RomGame _romGame;
     private SaveReader _saveReader; 
@@ -99,7 +99,7 @@ public class FF5 : Game
         Lenna = Content.Load<Texture2D>("Lenna");
         Galuf = Content.Load<Texture2D>("Galuf");
         Faris = Content.Load<Texture2D>("Faris");
-        font = Content.Load<SpriteFont>("File");
+        Font = Content.Load<SpriteFont>("File");
 
         partyState.AddItem(RomData.GetGearByName("[Shld]Leather"));
         partyState.AddItem(RomData.GetGearByName("[Shld]Leather"));
@@ -114,7 +114,7 @@ public class FF5 : Game
         NewEventManager.EventFlags = _saveReader.ParseEventFlags();
         partyState.Inventory = _saveReader.LoadInventory();
         
-        
+        stateStack.Add("newbattle", new NewBattleState(Content));
         stateStack.Add("world", new WorldState(Content, _romGame));
         stateStack.Add("menu", new CharacterMenu(Content));
         stateStack.Add("battle", new BattleState(Content, _romGame));
@@ -123,6 +123,7 @@ public class FF5 : Game
         stateStack.Add("menu.status", new StatusMenu(Content));
         stateStack.Add("menu.magic", new MagicMenu(Content));
         stateStack.Add("menu.job", new JobMenu(Content));
+        stateStack.Add("menu.bestiary", new BestiaryMenu(Content, _romGame));
         stateStack.Push("world", partyState);
 
         // Cutscene shortcut
